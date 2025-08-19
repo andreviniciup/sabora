@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos personalizados */
+@layer base {
+  body {
+    font-family: 'Alexandria', sans-serif;
+  }
+}
+
+@layer components {
+  /* Componente de botão de busca */
+  .search-button {
+    @apply bg-orange-500 hover:bg-orange-600;
+    @apply transform hover:-translate-y-0.5 transition-all duration-300;
+  }
+
+  /* Componente de badge de ranking */
+  .ranking-badge {
+    @apply bg-orange-500;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+  }
+
+  /* Componente de avaliação com estrelas */
+  .star-rating {
+    @apply text-yellow-400;
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+  }
+
+  /* Componente de card de restaurante */
+  .restaurant-card {
+    @apply transition-all duration-300 cursor-pointer;
+    @apply hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  /* Link da marca */
+  .brand-link {
+    @apply relative overflow-hidden transition-colors duration-300;
+  }
+
+  .brand-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-orange-500;
+    @apply transition-all duration-300;
+  }
+
+  .brand-link:hover::after {
+    @apply w-full;
+  }
+}
+
+@layer utilities {
+  /* Animação de fade in */
+  .fade-in {
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
