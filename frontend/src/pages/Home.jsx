@@ -40,45 +40,25 @@ const MOCK_RESTAURANTS = [
 
 const Home = () => {
   const [loading, setLoading] = useState(false)
-  const [showLocationPrompt, setShowLocationPrompt] = useState(false)
   const navigate = useNavigate()
   const { 
     setRestaurants, 
     setCurrentQuery, 
     clearError,
-    permission,
-    isSupported,
-    requestLocation,
-    location,
-    locationLoading,
-    locationError,
-    initializeLocation
+    requestLocation
   } = useRestaurants()
 
-  // Verificar se devemos mostrar o prompt de localização
+  // Solicitar localização quando a página carregar
   useEffect(() => {
-    if (isSupported && permission === 'prompt' && !location) {
-      setShowLocationPrompt(true)
-    } else if (permission === 'granted' && !location && !locationLoading) {
-      // Se temos permissão mas não temos localização, tentar obter
-      initializeLocation()
+    const getLocation = async () => {
+      try {
+        await requestLocation()
+      } catch (error) {
+        console.log('Erro ao obter localização:', error.message)
+      }
     }
-  }, [isSupported, permission, location, locationLoading, initializeLocation])
-
-  // Solicitar localização manualmente
-  const handleRequestLocation = async () => {
-    try {
-      setShowLocationPrompt(false)
-      await requestLocation()
-    } catch (error) {
-      console.error('Erro ao solicitar localização:', error)
-    }
-  }
-
-  // Dispensar prompt de localização
-  const handleDismissLocationPrompt = () => {
-    setShowLocationPrompt(false)
-  }
+    getLocation()
+  }, [requestLocation])
 
   const handleSearch = async (query) => {
     if (!query.trim()) return
@@ -152,122 +132,6 @@ const Home = () => {
           >
             O que combina com você hoje?
           </div>
-
-          {/* Status da localização */}
-          {isSupported && (
-            <div className="location-status w-full max-w-sm">
-              {/* Prompt para solicitar localização */}
-              {showLocationPrompt && (
-                <div 
-                  className="bg-blue-600 text-white p-4 rounded-lg mb-4 text-center"
-                  style={{
-                    background: '#1E40AF',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    marginBottom: '16px'
-                  }}
-                >
-                  <div className="flex items-center justify-center mb-2">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="mr-2">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                    <span style={{ fontSize: '14px', fontWeight: '500' }}>Localização</span>
-                  </div>
-                  <p style={{ fontSize: '12px', marginBottom: '12px', opacity: 0.9 }}>
-                    Permitir localização para encontrar restaurantes próximos?
-                  </p>
-                  <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={handleRequestLocation}
-                      className="px-4 py-2 bg-white text-blue-600 rounded-md text-sm font-medium hover:bg-gray-100"
-                    >
-                      Permitir
-                    </button>
-                    <button
-                      onClick={handleDismissLocationPrompt}
-                      className="px-4 py-2 bg-transparent border border-white text-white rounded-md text-sm font-medium hover:bg-white hover:bg-opacity-10"
-                    >
-                      Agora não
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Status da localização */}
-              {!showLocationPrompt && (
-                <div className="flex items-center justify-center mb-2">
-                  {locationLoading && (
-                    <div className="flex items-center text-gray-400 text-sm">
-                      <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full mr-2" />
-                      Obtendo localização...
-                    </div>
-                  )}
-
-                  {location && (
-                    <div className="flex items-center text-green-400 text-sm">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="mr-2">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                      </svg>
-                      Localização ativada
-                    </div>
-                  )}
-
-                  {permission === 'denied' && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center text-red-400 text-sm mb-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="mr-2">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                        Localização negada
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Para melhor experiência, ative a localização nas configurações do navegador
-                      </p>
-                      <button
-                        onClick={handleRequestLocation}
-                        className="text-blue-400 text-xs underline hover:text-blue-300"
-                      >
-                        Tentar novamente
-                      </button>
-                    </div>
-                  )}
-
-                  {locationError && !location && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center text-orange-400 text-sm mb-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="mr-2">
-                          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                        </svg>
-                        Erro na localização
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">{locationError}</p>
-                      <button
-                        onClick={handleRequestLocation}
-                        className="text-blue-400 text-xs underline hover:text-blue-300"
-                      >
-                        Tentar novamente
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Aviso se geolocalização não for suportada */}
-          {!isSupported && (
-            <div className="bg-gray-600 text-white p-3 rounded-lg text-center text-sm">
-              <div className="flex items-center justify-center mb-1">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="mr-2">
-                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                </svg>
-                Geolocalização não suportada
-              </div>
-              <p className="text-xs opacity-80">
-                Seu navegador não suporta geolocalização
-              </p>
-            </div>
-          )}
           
           {/* Container da barra de busca */}
           <div className="mobile-home-search" style={{ width: '388px' }}>
