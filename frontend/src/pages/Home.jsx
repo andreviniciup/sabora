@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRestaurants } from '../context/RestaurantContext'
-import SearchInput from '../components/SearchInput'
-import '../styles/responsive.css'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 // Dados mockados para demonstração
 const MOCK_RESTAURANTS = [
@@ -35,20 +34,37 @@ const MOCK_RESTAURANTS = [
     rank: 3,
     category: "Regional",
     price_level: 2
+  },
+  {
+    id: "4",
+    name: "Villa Gourmet",
+    rating: 4,
+    address: "R. das Flores, 123 - Centro, Maceió - AL",
+    distance: "2 km de você", 
+    rank: 4,
+    category: "Internacional",
+    price_level: 4
+  },
+  {
+    id: "5",
+    name: "Sabor da Terra",
+    rating: 4,
+    address: "Av. Brasil, 456 - Farol, Maceió - AL",
+    distance: "3 km de você",
+    rank: 5,
+    category: "Regional",
+    price_level: 2
   }
 ]
 
 const Home = () => {
+  const [query, setQuery] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const { 
-    setRestaurants, 
-    setCurrentQuery, 
-    clearError,
-    requestLocation
-  } = useRestaurants()
+  const { setRestaurants, setCurrentQuery, clearError, requestLocation } = useRestaurants()
 
-  // Solicitar localização quando a página carregar
+  // Solicitar localização automaticamente quando a página carregar
   useEffect(() => {
     const getLocation = async () => {
       try {
@@ -60,7 +76,7 @@ const Home = () => {
     getLocation()
   }, [requestLocation])
 
-  const handleSearch = async (query) => {
+  const handleSearch = async () => {
     if (!query.trim()) return
 
     try {
@@ -82,83 +98,89 @@ const Home = () => {
     }
   }
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
+  const handleFocus = () => {
+    setIsFocused(true)
+  }
+
+  const handleBlur = () => {
+    if (!query.trim()) {
+      setIsFocused(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-black font-alexandria overflow-hidden">
-      {/* Container principal seguindo o design do Figma */}
-      <div 
-        className="Version2 responsive-container figma-desktop"
-        style={{
-          background: '#181818',
-          overflow: 'hidden'
-        }}
-      >
+    <div className="min-h-screen bg-figma-bg font-alexandria overflow-hidden">
+      {/* Container principal*/}
+      <div className="Version2 relative w-full h-full max-w-screen-xl max-h-screen mx-auto" style={{width: '1512px', height: '982px'}}>
+        
         {/* Container principal centralizado */}
-        <div 
-          className="Principal responsive-absolute mobile-home-layout flex flex-col items-center gap-6"
-          style={{
-            width: '388px',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            gap: '25px',
-            display: 'inline-flex'
-          }}
-        >
-          {/* Imagem do restaurante */}
+        <div className="Principal absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6" style={{width: '388px'}}>
+          
+          {/* Imagem do restaurante 
           <img 
-            className="Image mobile-home-image" 
-            style={{width: '112px', height: '112px'}}
+            className="w-28 h-28" 
             src="/restaurant-icon.png" 
             alt="Restaurant Icon"
             onError={(e) => {
               e.target.src = 'https://placehold.co/112x112/3D3D3D/FAFAFA?text=🍽️'
             }}
-          />
+            style={{width: '112px', height: '112px'}}
+          /> */}
           
           {/* Título principal */}
-          <div 
-            className="Titlr mobile-home-title"
-            style={{
-              textAlign: 'center',
-              color: '#FAFAFA',
-              fontSize: '24px',
-              fontFamily: 'Alexandria',
-              fontWeight: '500',
-              lineHeight: '23px',
-              wordWrap: 'break-word'
-            }}
-          >
+          <div className="text-center text-figma-text text-xl font-medium leading-6">
             O que combina com você hoje?
           </div>
           
-          {/* Container da barra de busca */}
-          <div className="mobile-home-search" style={{ width: '388px' }}>
-            <SearchInput
-              onSearch={handleSearch}
-              placeholder="Pesquisar"
+          {/* Barra de busca */}
+          <div className="relative w-full h-10 bg-figma-gray rounded-full">
+            <input 
+              type="text" 
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              placeholder=""
               disabled={loading}
+              className="w-full h-full bg-transparent text-figma-text placeholder-figma-placeholder rounded-full focus:outline-none font-alexandria text-sm disabled:opacity-50"
+              style={{padding: '0 60px 0 20px', fontSize: '14px'}}
             />
+            
+            {/* Texto "Pesquisar" no lado esquerdo */}
+            {!isFocused && !query.trim() && (
+              <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-figma-placeholder text-xs font-normal leading-6 cursor-pointer">
+                Pesquisar
+              </div>
+            )}
+            
+            {/* Botão circular no lado direito */}
+            {(isFocused || query.trim()) && (
+              <button 
+                onClick={handleSearch}
+                disabled={!query.trim() || loading}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-stone-400 hover:bg-stone-50 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
         </div>
         
         {/* Logo sabora na parte inferior */}
-        <div 
-          className="Logo responsive-absolute mobile-home-logo"
-          style={{
-            left: '50%',
-            top: '890px',
-            transform: 'translateX(-50%)',
-            textAlign: 'center',
-            color: '#2D2D2D',
-            fontSize: '24px',
-            fontFamily: 'Alexandria',
-            fontWeight: '500',
-            lineHeight: '23px',
-            wordWrap: 'break-word'
-          }}
-        >
+        <div className="absolute left-1/2 bottom-8 transform -translate-x-1/2 text-center text-figma-gray-dark text-2xl font-medium leading-6" style={{fontSize: '24px', lineHeight: '23px'}}>
           sabora
         </div>
       </div>
