@@ -1,70 +1,55 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useRestaurants } from '../context/RestaurantContext'
-import { restaurantAPI } from '../services/api'
+import React from 'react'
+import LoadingSpinner from './LoadingSpinner'
 
 const SearchBar = ({ 
-  placeholder = "Nova busca...", 
-  className = "",
-  onSearch 
+  value, 
+  onChange, 
+  onFocus, 
+  onBlur, 
+  onKeyPress, 
+  onSearch, 
+  placeholder = "Pesquisar", 
+  loading = false,
+  disabled = false 
 }) => {
-  const [query, setQuery] = useState('')
-  const navigate = useNavigate()
-  const { setRestaurants, setLoading, setError, setCurrentQuery, clearError } = useRestaurants()
-
-  const handleSearch = async () => {
-    if (!query.trim()) return
-
-    try {
-      clearError()
-      setLoading(true)
-      setCurrentQuery(query)
-
-      const result = await restaurantAPI.searchRestaurants({
-        query: query.trim(),
-        maxResults: 5
-      })
-
-      setRestaurants(result.restaurants || [])
-      
-      // Se tem callback customizado, usa ele, senão navega para resultados
-      if (onSearch) {
-        onSearch(query)
-      } else {
-        navigate('/search-results')
-      }
-      
-    } catch (error) {
-      console.error('Search error:', error)
-      setError(error.message || 'Erro ao buscar restaurantes')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
-  }
-
   return (
-    <div className={`relative ${className}`}>
+    <div className="relative w-full h-10 bg-figma-gray rounded-full">
       <input 
         type="text" 
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder={placeholder}
-        className="w-full px-6 py-4 bg-figma-gray text-figma-text placeholder-figma-placeholder rounded-2xl border-2 border-figma-gray-light focus:border-figma-placeholder focus:outline-none transition-colors"
+        value={value}
+        onChange={onChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyPress={onKeyPress}
+        placeholder=""
+        disabled={disabled || loading}
+        className="w-full h-full bg-transparent text-figma-text placeholder-figma-placeholder rounded-full focus:outline-none font-alexandria text-sm disabled:opacity-50"
+        style={{padding: '0 60px 0 20px', fontSize: '14px'}}
       />
-      <button 
-        onClick={handleSearch}
-        disabled={!query.trim()}
-        className="absolute right-2 top-2 search-button text-figma-text px-6 py-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Buscar
-      </button>
+      
+      {/* Texto "Pesquisar" no lado esquerdo */}
+      {!value.trim() && (
+        <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-figma-placeholder text-xs font-normal leading-6 cursor-pointer">
+          {placeholder}
+        </div>
+      )}
+      
+      {/* Botão circular no lado direito */}
+      {value.trim() && (
+        <button 
+          onClick={onSearch}
+          disabled={!value.trim() || loading || disabled}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-stone-400 hover:bg-stone-50 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <LoadingSpinner size="sm" />
+          ) : (
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          )}
+        </button>
+      )}
     </div>
   )
 }

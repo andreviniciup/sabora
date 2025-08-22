@@ -69,12 +69,12 @@ const Home = () => {
     const getLocation = async () => {
       try {
         const location = await requestLocation()
-        console.log('📍 Localização obtida:', location)
-        console.log('📍 Latitude:', location?.latitude)
-        console.log('📍 Longitude:', location?.longitude)
-        console.log('📍 Precisão:', location?.accuracy, 'metros')
+        console.log(' Localização obtida:', location)
+        console.log('Latitude:', location?.latitude)
+        console.log('Longitude:', location?.longitude)
+        console.log('Precisão:', location?.accuracy, 'metros')
       } catch (error) {
-        console.log('❌ Erro ao obter localização:', error.message)
+        console.log('Erro ao obter localização:', error.message)
       }
     }
     getLocation()

@@ -44,3 +44,4 @@ const RestaurantCard = ({ restaurant, className = "" }) => {
 }
 
 export default RestaurantCard
+

@@ -92,3 +92,4 @@ export const restaurantAPI = {
 }
 
 export default api
+
