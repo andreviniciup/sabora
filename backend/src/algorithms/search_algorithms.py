@@ -1,4 +1,4 @@
-from sorting_algorithms import bubble_sort
+from .sorting_algorithms import bubble_sort
 
 def busca_linear(lista_de_itens: list, chave: str, valor_procurado: str):
     for item in lista_de_itens:
