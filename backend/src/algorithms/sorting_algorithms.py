@@ -1,9 +1,16 @@
-def bubble_sort(lista_de_itens: list, chave: str, decrescente: bool = False):
+def bubble_sort(lista_de_itens: list, chave: str = None, decrescente: bool = False):
     n = len(lista_de_itens)
     for i in range(n - 1, 0, -1):
         for j in range(i):
-            valor_atual = lista_de_itens[j].get(chave)
-            valor_proximo = lista_de_itens[j + 1].get(chave)
+            # obter valores baseado no tipo de objeto
+            if hasattr(lista_de_itens[j], chave):
+                # objeto com atributos (ex: Restaurant)
+                valor_atual = getattr(lista_de_itens[j], chave)
+                valor_proximo = getattr(lista_de_itens[j + 1], chave)
+            else:
+                # dicionario
+                valor_atual = lista_de_itens[j].get(chave)
+                valor_proximo = lista_de_itens[j + 1].get(chave)
 
             if valor_atual is None or valor_proximo is None:
                 continue

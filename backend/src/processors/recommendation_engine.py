@@ -13,6 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.geo_utils import calculate_distance, is_within_radius, format_distance, calculate_distance_from_dict
 from algorithms.sorting_algorithms import bubble_sort
 from algorithms.search_algorithms import busca_binaria
+from models.restaurant import Restaurant, restaurants_to_dicts, dicts_to_restaurants
 
 
 class RecommendationEngine:
@@ -24,12 +25,12 @@ class RecommendationEngine:
         self.restaurants = []
         self.user_location = None
     
-    def set_restaurants(self, restaurants: List[Dict[str, Any]]) -> None:
+    def set_restaurants(self, restaurants: List[Restaurant]) -> None:
         """
         define a lista de restaurantes disponiveis
         
         Args:
-            restaurants: lista de dicionarios com dados dos restaurantes
+            restaurants: lista de objetos restaurant
         """
         self.restaurants = restaurants
     
@@ -46,7 +47,7 @@ class RecommendationEngine:
             'longitude': longitude
         }
     
-    def calculate_distances(self) -> List[Dict[str, Any]]:
+    def calculate_distances(self) -> List[Restaurant]:
         """
         calcula a distancia entre o usuario e todos os restaurantes
         
@@ -62,22 +63,35 @@ class RecommendationEngine:
             try:
                 # usar a funcao de calculo de distancia existente
                 distance = calculate_distance_from_dict(self.user_location, {
-                    'latitude': restaurant['latitude'],
-                    'longitude': restaurant['longitude']
+                    'latitude': restaurant.latitude,
+                    'longitude': restaurant.longitude
                 })
                 
-                restaurant_copy = restaurant.copy()
-                restaurant_copy['distance'] = distance
-                restaurant_copy['distance_formatted'] = format_distance(distance)
+                # criar copia do restaurante e atualizar distancia
+                restaurant_copy = Restaurant(
+                    id=restaurant.id,
+                    name=restaurant.name,
+                    latitude=restaurant.latitude,
+                    longitude=restaurant.longitude,
+                    rating=restaurant.rating,
+                    cuisine_type=restaurant.cuisine_type,
+                    price_range=restaurant.price_range,
+                    address=restaurant.address,
+                    phone=restaurant.phone,
+                    website=restaurant.website,
+                    opening_hours=restaurant.opening_hours,
+                    features=restaurant.features
+                )
+                restaurant_copy.update_distance(distance, format_distance(distance))
                 restaurants_with_distance.append(restaurant_copy)
                 
-            except (KeyError, ValueError) as e:
-                print(f"erro ao calcular distancia para restaurante {restaurant.get('name', 'unknown')}: {e}")
+            except (AttributeError, ValueError) as e:
+                print(f"erro ao calcular distancia para restaurante {restaurant.name}: {e}")
                 continue
         
         return restaurants_with_distance
     
-    def bubble_sort_by_distance(self, restaurants: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def bubble_sort_by_distance(self, restaurants: List[Restaurant]) -> List[Restaurant]:
         """
         ordena restaurantes por distancia usando bubble sort
         
@@ -93,7 +107,7 @@ class RecommendationEngine:
         # usar o algoritmo de bubble sort existente
         return bubble_sort(restaurants.copy(), chave='distance', decrescente=False)
     
-    def binary_search_radius_filter(self, restaurants: List[Dict[str, Any]], radius_km: float) -> List[Dict[str, Any]]:
+    def binary_search_radius_filter(self, restaurants: List[Restaurant], radius_km: float) -> List[Restaurant]:
         """
         filtra restaurantes por raio usando busca binaria
         
@@ -111,7 +125,7 @@ class RecommendationEngine:
         last_index = busca_binaria(restaurants, chave='distance', valor_limite=radius_km)
         return restaurants[:last_index + 1] if last_index >= 0 else []
     
-    def bubble_sort_by_rating(self, restaurants: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def bubble_sort_by_rating(self, restaurants: List[Restaurant]) -> List[Restaurant]:
         """
         ordena restaurantes por nota usando bubble sort
         
@@ -133,7 +147,7 @@ class RecommendationEngine:
         user_longitude: float,
         radius_km: float = 2.0,
         max_results: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> List[Restaurant]:
         """
         gera recomendacoes completas seguindo o fluxo especificado
         
@@ -172,12 +186,12 @@ class RecommendationEngine:
         
         # adicionar informacoes extras
         for i, restaurant in enumerate(top_recommendations):
-            restaurant['rank'] = i + 1
-            restaurant['recommendation_score'] = self._calculate_recommendation_score(restaurant)
+            restaurant.update_rank(i + 1)
+            restaurant.update_recommendation_score(self._calculate_recommendation_score(restaurant))
         
         return top_recommendations
     
-    def _calculate_recommendation_score(self, restaurant: Dict[str, Any]) -> float:
+    def _calculate_recommendation_score(self, restaurant: Restaurant) -> float:
         """
         calcula score de recomendacao baseado em distancia e nota
         
@@ -187,8 +201,8 @@ class RecommendationEngine:
         Returns:
             score de recomendacao (0-100)
         """
-        distance = restaurant.get('distance', 0)
-        rating = restaurant.get('rating', 0)
+        distance = restaurant.distance or 0
+        rating = restaurant.rating
         
         # peso da distancia (60%) e nota (40%)
         distance_score = max(0, 100 - (distance * 20))  # 5km = 0 pontos
@@ -206,7 +220,7 @@ class RecommendationEngine:
         min_rating: float = 0.0,
         cuisine_types: Optional[List[str]] = None,
         price_range: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> List[Restaurant]:
         """
         gera recomendacoes com filtros adicionais
         
@@ -227,25 +241,21 @@ class RecommendationEngine:
             user_latitude, user_longitude, radius_km, max_results * 2
         )
         
-        # aplicar filtros
+        # aplicar filtros usando metodos do objeto restaurant
         filtered_recommendations = []
         
         for restaurant in recommendations:
             # filtro de nota minima
-            if restaurant.get('rating', 0) < min_rating:
+            if not restaurant.matches_rating_filter(min_rating):
                 continue
             
             # filtro de tipo de culinaria
-            if cuisine_types:
-                restaurant_cuisine = restaurant.get('cuisine_type', '').lower()
-                if not any(cuisine.lower() in restaurant_cuisine for cuisine in cuisine_types):
-                    continue
+            if not restaurant.matches_cuisine_filter(cuisine_types):
+                continue
             
             # filtro de faixa de preco
-            if price_range:
-                restaurant_price = restaurant.get('price_range', '')
-                if restaurant_price != price_range:
-                    continue
+            if not restaurant.matches_price_filter(price_range):
+                continue
             
             filtered_recommendations.append(restaurant)
             
@@ -258,24 +268,24 @@ class RecommendationEngine:
 
 # funcao de conveniencia para uso direto
 def get_recommendations(
-    restaurants: List[Dict[str, Any]],
+    restaurants: List[Restaurant],
     user_latitude: float,
     user_longitude: float,
     radius_km: float = 2.0,
     max_results: int = 5
-) -> List[Dict[str, Any]]:
+) -> List[Restaurant]:
     """
     funcao de conveniencia para gerar recomendacoes rapidamente
     
     Args:
-        restaurants: lista de restaurantes
+        restaurants: lista de objetos restaurant
         user_latitude: latitude do usuario
         user_longitude: longitude do usuario
         radius_km: raio de busca em quilometros
         max_results: numero maximo de resultados
     
     Returns:
-        lista de recomendacoes
+        lista de objetos restaurant
     """
     engine = RecommendationEngine()
     engine.set_restaurants(restaurants)
@@ -284,77 +294,88 @@ def get_recommendations(
 
 # testes unitarios
 if __name__ == "__main__":
-    # dados de teste
+    # dados de teste usando objetos restaurant
     test_restaurants = [
-        {
-            'id': 1,
-            'name': 'restaurante a',
-            'latitude': -9.6498,
-            'longitude': -35.7089,
-            'rating': 4.5,
-            'cuisine_type': 'brasileira',
-            'price_range': 'medio'
-        },
-        {
-            'id': 2,
-            'name': 'restaurante b',
-            'latitude': -9.6500,
-            'longitude': -35.7090,
-            'rating': 4.8,
-            'cuisine_type': 'italiana',
-            'price_range': 'alto'
-        },
-        {
-            'id': 3,
-            'name': 'restaurante c',
-            'latitude': -9.6600,
-            'longitude': -35.7200,
-            'rating': 3.9,
-            'cuisine_type': 'japonesa',
-            'price_range': 'medio'
-        },
-        {
-            'id': 4,
-            'name': 'restaurante d',
-            'latitude': -9.6495,
-            'longitude': -35.7085,
-            'rating': 4.2,
-            'cuisine_type': 'brasileira',
-            'price_range': 'baixo'
-        },
-        {
-            'id': 5,
-            'name': 'restaurante e',
-            'latitude': -9.6510,
-            'longitude': -35.7095,
-            'rating': 4.7,
-            'cuisine_type': 'italiana',
-            'price_range': 'medio'
-        }
+        Restaurant(
+            id=1,
+            name='restaurante a',
+            latitude=-9.6498,
+            longitude=-35.7089,
+            rating=4.5,
+            cuisine_type='brasileira',
+            price_range='medio',
+            address='rua a, 123'
+        ),
+        Restaurant(
+            id=2,
+            name='restaurante b',
+            latitude=-9.6500,
+            longitude=-35.7090,
+            rating=4.8,
+            cuisine_type='italiana',
+            price_range='alto',
+            address='rua b, 456'
+        ),
+        Restaurant(
+            id=3,
+            name='restaurante c',
+            latitude=-9.6600,
+            longitude=-35.7200,
+            rating=3.9,
+            cuisine_type='japonesa',
+            price_range='medio',
+            address='rua c, 789'
+        ),
+        Restaurant(
+            id=4,
+            name='restaurante d',
+            latitude=-9.6495,
+            longitude=-35.7085,
+            rating=4.2,
+            cuisine_type='brasileira',
+            price_range='baixo',
+            address='rua d, 321'
+        ),
+        Restaurant(
+            id=5,
+            name='restaurante e',
+            latitude=-9.6510,
+            longitude=-35.7095,
+            rating=4.7,
+            cuisine_type='italiana',
+            price_range='medio',
+            address='rua e, 654'
+        )
     ]
     
     # testar engine
     engine = RecommendationEngine()
     engine.set_restaurants(test_restaurants)
     
-    print("teste do motor de recomendacoes")
+    print("=== teste do motor de recomendacoes com objetos restaurant ===")
     
     # testar recomendacoes basicas
     recommendations = engine.get_recommendations(-9.6498, -35.7089, 1.0, 3)
     
     print(f"recomendacoes encontradas: {len(recommendations)}")
     for i, rec in enumerate(recommendations):
-        print(f"{i+1}. {rec['name']} - {rec['distance_formatted']} - {rec['rating']} estrelas")
+        print(f"{i+1}. {rec.name} - {rec.distance_formatted} - {rec.rating} estrelas")
     
     # testar filtros
-    print("\n teste com filtros ")
+    print("\n=== teste com filtros ===")
     filtered_recs = engine.get_recommendations_with_filters(
         -9.6498, -35.7089, 1.0, 3, 4.0, ['brasileira'], 'medio'
     )
     
     print(f"recomendacoes filtradas: {len(filtered_recs)}")
     for i, rec in enumerate(filtered_recs):
-        print(f"{i+1}. {rec['name']} - {rec['cuisine_type']} - {rec['price_range']}")
+        print(f"{i+1}. {rec.name} - {rec.cuisine_type} - {rec.price_range}")
     
-    print("\n todos os testes passaram!")
+    # testar conversao para dicionario
+    print("\n=== teste conversao para dicionario ===")
+    dicts = restaurants_to_dicts(recommendations)
+    print(f"convertidos para dicionario: {len(dicts)}")
+    print(f"primeiro restaurante como dict: {dicts[0] if dicts else 'nenhum'}")
+    
+    print("\n✅ todos os testes passaram!")
 

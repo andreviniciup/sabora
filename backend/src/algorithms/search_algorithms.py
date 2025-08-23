@@ -13,7 +13,13 @@ def busca_binaria(lista_ordenada: list, chave: str, valor_limite: float):
 
     while inicio <= fim:
         meio = (inicio + fim) // 2
-        valor_meio = lista_ordenada[meio].get(chave)
+        # obter valor baseado no tipo de objeto
+        if hasattr(lista_ordenada[meio], chave):
+            # objeto com atributos (ex: Restaurant)
+            valor_meio = getattr(lista_ordenada[meio], chave)
+        else:
+            # dicionario
+            valor_meio = lista_ordenada[meio].get(chave)
 
         if valor_meio is None:
             inicio = meio + 1
