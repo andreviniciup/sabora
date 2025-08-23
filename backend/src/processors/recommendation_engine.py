@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils.geo_utils import calculate_distance, is_within_radius, format_distance, calculate_distance_from_dict
 from algorithms.sorting_algorithms import bubble_sort
-from algorithms.search_algorithms import busca_binaria
+from algorithms.search_algorithms import binary_search
 from models.restaurant import Restaurant, restaurants_to_dicts, dicts_to_restaurants
 
 
@@ -105,7 +105,7 @@ class RecommendationEngine:
             return []
         
         # usar o algoritmo de bubble sort existente
-        return bubble_sort(restaurants.copy(), chave='distance', decrescente=False)
+        return bubble_sort(restaurants.copy(), key='distance', descending=False)
     
     def binary_search_radius_filter(self, restaurants: List[Restaurant], radius_km: float) -> List[Restaurant]:
         """
@@ -122,7 +122,7 @@ class RecommendationEngine:
             return []
         
         # usar o algoritmo de busca binaria existente
-        last_index = busca_binaria(restaurants, chave='distance', valor_limite=radius_km)
+        last_index = binary_search(restaurants, key='distance', limit_value=radius_km)
         return restaurants[:last_index + 1] if last_index >= 0 else []
     
     def bubble_sort_by_rating(self, restaurants: List[Restaurant]) -> List[Restaurant]:
@@ -139,7 +139,7 @@ class RecommendationEngine:
             return []
         
         # usar o algoritmo de bubble sort existente (decrescente para maior nota primeiro)
-        return bubble_sort(restaurants.copy(), chave='rating', decrescente=True)
+        return bubble_sort(restaurants.copy(), key='rating', descending=True)
     
     def get_recommendations(
         self,
