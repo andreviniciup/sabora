@@ -282,11 +282,11 @@ const SearchResults = () => {
       </div>
 
       {/* SearchBar Flutuante - Responsivo */}
-      <div className="fixed bottom-6 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
           onSearch={(query) => console.log('Nova pesquisa:', query)}
           placeholder="Pesquisar"
-          className="w-[120px] lg:w-[200px] transition-all duration-300 ease-in-out"
+          className="w-[240px] lg:w-[200px] transition-all duration-300 ease-in-out"
           style={{ backgroundColor: '#181818' }}
         />
       </div>

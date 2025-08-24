@@ -406,7 +406,7 @@ const CompleteList = () => {
       </div>
 
       {/* SearchBar Flutuante - Responsivo */}
-      <div className="fixed bottom-6 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
           onSearch={(query) => {
             console.log('Pesquisando:', query)

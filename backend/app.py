@@ -12,6 +12,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.nlp.parser import QueryParser
+from src.nlp.synonyms import CULINARIA, PRECO, DISTANCIA, AVALIACAO
 from src.processors.recommendation_engine import RecommendationEngine
 from src.models.restaurant import Restaurant, restaurants_to_dicts
 
@@ -24,6 +25,12 @@ CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://loc
 # instancias globais
 query_parser = QueryParser()
 recommendation_engine = RecommendationEngine()
+
+# configurar dicionarios de sinonimos no parser
+query_parser.set_cuisine_synonyms(CULINARIA)
+query_parser.set_price_synonyms(PRECO)
+query_parser.set_distance_synonyms(DISTANCIA)
+query_parser.set_rating_synonyms(AVALIACAO)
 
 
 @app.route('/')
