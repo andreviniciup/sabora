@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import SearchBar from '../components/SearchBar'
 
 // Dados mockados para demonstração
 const MOCK_RESTAURANTS = [
@@ -8,7 +10,7 @@ const MOCK_RESTAURANTS = [
     id: "1",
     name: "Restaurante Janga Praia",
     rating: 5,
-    address: "Ponta Verde, Maceió - AL",
+    address: "R. Dep. José Lages, 813 - Ponta Verde, Maceió - AL",
     distance: "1 km de você",
     rank: 1,
     category: "Frutos do Mar",
@@ -18,7 +20,7 @@ const MOCK_RESTAURANTS = [
     id: "2", 
     name: "Piccola Villa",
     rating: 5,
-    address: "Pajuçara, Maceió - AL",
+    address: "R. Dep. José Lages, 813 - Pajuçara, Maceió - AL",
     distance: "1 km de você",
     rank: 2,
     category: "Italiana",
@@ -26,9 +28,9 @@ const MOCK_RESTAURANTS = [
   },
   {
     id: "3",
-    name: "Restaurante Caruva", 
+    name: "Restaurante Garuva", 
     rating: 5,
-    address: "Ponta Verde, Maceió - AL",
+    address: "R. Dep. José Lages, 813 - Ponta Verde, Maceió - AL",
     distance: "1 km de você",
     rank: 3,
     category: "Regional",
@@ -38,7 +40,7 @@ const MOCK_RESTAURANTS = [
     id: "4",
     name: "Villa Gourmet",
     rating: 4,
-    address: "Centro, Maceió - AL",
+    address: "R. Dep. José Lages, 813 - Centro, Maceió - AL",
     distance: "2 km de você", 
     rank: 4,
     category: "Internacional",
@@ -48,233 +50,385 @@ const MOCK_RESTAURANTS = [
     id: "5",
     name: "Sabor da Terra",
     rating: 4,
-    address: "Farol, Maceió - AL",
+    address: "R. Dep. José Lages, 813 - Farol, Maceió - AL",
     distance: "3 km de você",
     rank: 5,
     category: "Regional",
     price_level: 2
-  },
-  {
-    id: "6",
-    name: "Cantinho do Mar",
-    rating: 4,
-    address: "Pajuçara, Maceió - AL",
-    distance: "4 km de você",
-    rank: 6,
-    category: "Frutos do Mar",
-    price_level: 3
-  },
-  {
-    id: "7",
-    name: "Pizzaria Bella Vista",
-    rating: 4,
-    address: "Ponta Verde, Maceió - AL",
-    distance: "5 km de você",
-    rank: 7,
-    category: "Pizza",
-    price_level: 2
-  },
-  {
-    id: "8",
-    name: "Restaurante Sabor Caseiro",
-    rating: 3,
-    address: "Centro, Maceió - AL",
-    distance: "6 km de você",
-    rank: 8,
-    category: "Regional",
-    price_level: 1
-  },
-  {
-    id: "9",
-    name: "Sushi Bar Premium",
-    rating: 5,
-    address: "Ponta Verde, Maceió - AL",
-    distance: "7 km de você",
-    rank: 9,
-    category: "Japonesa",
-    price_level: 5
-  },
-  {
-    id: "10",
-    name: "Churrascaria Gaúcha",
-    rating: 4,
-    address: "Farol, Maceió - AL",
-    distance: "8 km de você",
-    rank: 10,
-    category: "Churrasco",
-    price_level: 4
   }
 ]
 
 const CompleteList = () => {
   const { restaurants } = useRestaurants()
+  const [searchQuery, setSearchQuery] = useState('')
   
   // Usar dados mockados se não houver dados do contexto
-  const displayRestaurants = restaurants.length > 0 ? restaurants : MOCK_RESTAURANTS
+  const displayRestaurants = restaurants.length > 0 ? restaurants : [...MOCK_RESTAURANTS, ...MOCK_RESTAURANTS, ...MOCK_RESTAURANTS]
 
-  // Agrupar restaurantes por categoria
-  const restaurantsByCategory = displayRestaurants.reduce((acc, restaurant) => {
-    if (!acc[restaurant.category]) {
-      acc[restaurant.category] = []
+  // Calcular largura dinâmica baseada no texto
+  const getSearchBarWidth = () => {
+    const baseWidth = 280 // largura mínima
+    const maxWidth = 280 // largura máxima antes de crescer verticalmente
+    const charWidth = 12 // largura aproximada por caractere
+    
+    const calculatedWidth = baseWidth + (searchQuery.length * charWidth)
+    return Math.min(calculatedWidth, maxWidth)
+  }
+
+  // Calcular altura dinâmica baseada no texto
+  const getSearchBarHeight = () => {
+    const baseHeight = 40 // altura base
+    const maxWidth = 280 // largura máxima antes de crescer verticalmente
+    const charWidth = 12 // largura aproximada por caractere
+    
+    const calculatedWidth = 280 + (searchQuery.length * charWidth)
+    
+    if (calculatedWidth > maxWidth) {
+      const extraChars = Math.ceil((calculatedWidth - maxWidth) / charWidth)
+      const extraLines = Math.ceil(extraChars / 50) // aproximadamente 50 caracteres por linha
+      return baseHeight + (extraLines * 20) // 20px por linha extra
     }
-    acc[restaurant.category].push(restaurant)
-    return acc
-  }, {})
-
-  // Ordenar categorias por número de restaurantes
-  const sortedCategories = Object.keys(restaurantsByCategory).sort((a, b) => 
-    restaurantsByCategory[b].length - restaurantsByCategory[a].length
-  )
+    
+    return baseHeight
+  }
 
   return (
-    <div className="min-h-screen bg-figma-bg font-alexandria overflow-hidden">
-      {/* Container principal seguindo o design do Figma */}
-      <div className="Version2Resposta relative w-full h-full max-w-screen-xl max-h-screen mx-auto" style={{width: '1200px', height: '800px', position: 'relative', background: '#181818', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)', overflow: 'hidden'}}>
-        
-        {/* Logo sabora */}
-        <div className="absolute text-center text-figma-placeholder text-lg font-medium leading-6" style={{left: '30px', top: '50px', fontSize: '18px', lineHeight: '20px'}}>
+    <div className="relative">
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex w-full min-h-screen px-10 bg-neutral-900 font-alexandria items-start overflow-y-auto">
+        {/* Logo */}
+        <div className="absolute top-6 left-6 text-stone-300 text-lg font-medium">
           sabora
         </div>
 
-        {/* Retângulo principal - AUMENTADO */}
-        <div className="absolute bg-figma-gray" style={{width: '900px', height: '750px', left: '150px', top: '30px', borderTopLeftRadius: '25px', borderTopRightRadius: '25px'}} />
-
-        {/* Frame com título */}
-        <div className="absolute flex justify-between items-center" style={{width: '800px', left: '190px', top: '70px'}}>
-          <div className="text-justify text-figma-text text-2xl font-normal leading-6" style={{fontSize: '28px', lineHeight: '20px'}}>
-            Top {displayRestaurants.length}
-          </div>
-          <div className="text-justify text-figma-text text-xl font-normal leading-6" style={{fontSize: '20px', lineHeight: '20px'}}>
-            Restaurantes por Categoria
-          </div>
-        </div>
-
-        {/* Container scrollável para os cards - ORGANIZADO POR CATEGORIA */}
-        <div className="absolute overflow-y-auto" style={{
-          width: '860px',
-          height: '600px',
-          left: '165px',
-          top: '120px',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
-        }}>
-          <style jsx>{`
-            .scrollable-container::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-          
-          <div className="flex gap-8">
-            {/* Coluna Esquerda */}
-            <div className="flex-1">
-              {sortedCategories.slice(0, Math.ceil(sortedCategories.length / 2)).map((category, categoryIndex) => (
-                <div key={category} className="mb-8">
-                  {/* Título da Categoria */}
-                  <div className="text-justify text-figma-text text-lg font-semibold leading-6 mb-4" style={{fontSize: '18px', lineHeight: '20px', borderBottom: '2px solid #575757', paddingBottom: '8px'}}>
-                    {category}
-                  </div>
-                  
-                  {/* Restaurantes da Categoria */}
-                  {restaurantsByCategory[category].map((restaurant, index) => (
-                    <div 
-                      key={restaurant.id}
-                      className="flex justify-between items-center mb-3"
-                      style={{
-                        width: '400px',
-                        padding: '8px 0'
-                      }}
-                    >
-                      {/* Nome e Localização */}
-                      <div className="flex flex-col justify-start items-start gap-1" style={{width: '280px'}}>
-                        <div className="text-justify text-figma-text text-sm font-medium leading-6" style={{fontSize: '14px', lineHeight: '18px'}}>
-                          {restaurant.name}
-                        </div>
-                        <div className="text-justify text-figma-placeholder text-xs font-normal leading-6" style={{fontSize: '10px', lineHeight: '18px'}}>
-                          {restaurant.address}
-                        </div>
-                      </div>
-                      
-                      {/* Distância e Ranking */}
-                      <div className="flex flex-col justify-end items-end gap-1" style={{width: '100px'}}>
-                        <div className="text-justify text-figma-placeholder text-xs font-medium leading-6" style={{fontSize: '12px', lineHeight: '18px'}}>
-                          {restaurant.distance}
-                        </div>
-                        <div className="text-justify text-figma-text text-xs font-semibold leading-6" style={{fontSize: '12px', lineHeight: '18px'}}>
-                          #{restaurant.rank}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
+        {/* Main Container - ajustado para dar espaço ao SearchBar flutuante */}
+        <div className="mx-auto px-8 py-10 pb-28 bg-neutral-700 rounded-tl-[30px] rounded-tr-[30px] flex justify-center items-start shadow-lg min-h-fit">
+          <div 
+            className={`${
+              displayRestaurants.length >= 8 
+                ? "grid grid-cols-2 gap-8 w-full max-w-5xl" // duas colunas
+                : "w-[600px] flex flex-col justify-start items-center"
+            }`}
+          >
+            {/* Header */}
+            <div className={`${displayRestaurants.length >= 8 ? "col-span-2" : "w-full"} flex justify-between items-center pb-6`}>
+              <div className="text-white text-2xl font-semibold">Top {Math.min(displayRestaurants.length, 15)}</div>
+              <div className="text-white text-lg font-normal">Restaurantes 5 estrelas</div>
             </div>
 
-            {/* Coluna Direita */}
-            <div className="flex-1">
-              {sortedCategories.slice(Math.ceil(sortedCategories.length / 2)).map((category, categoryIndex) => (
-                <div key={category} className="mb-8">
-                  {/* Título da Categoria */}
-                  <div className="text-justify text-figma-text text-lg font-semibold leading-6 mb-4" style={{fontSize: '18px', lineHeight: '20px', borderBottom: '2px solid #575757', paddingBottom: '8px'}}>
-                    {category}
+            {/* Restaurant List */}
+            {displayRestaurants.map((restaurant, index) => (
+              <div 
+                key={restaurant.id} 
+                className="w-full pb-4 flex flex-col gap-3"
+              >
+                {/* Distance */}
+                <div className="w-full flex justify-end">
+                  <div className="text-zinc-500 text-xs font-medium">
+                    {restaurant.distance}
                   </div>
-                  
-                  {/* Restaurantes da Categoria */}
-                  {restaurantsByCategory[category].map((restaurant, index) => (
-                    <div 
-                      key={restaurant.id}
-                      className="flex justify-between items-center mb-3"
-                      style={{
-                        width: '400px',
-                        padding: '8px 0'
-                      }}
-                    >
-                      {/* Nome e Localização */}
-                      <div className="flex flex-col justify-start items-start gap-1" style={{width: '280px'}}>
-                        <div className="text-justify text-figma-text text-sm font-medium leading-6" style={{fontSize: '14px', lineHeight: '18px'}}>
-                          {restaurant.name}
-                        </div>
-                        <div className="text-justify text-figma-placeholder text-xs font-normal leading-6" style={{fontSize: '10px', lineHeight: '18px'}}>
-                          {restaurant.address}
-                        </div>
-                      </div>
-                      
-                      {/* Distância e Ranking */}
-                      <div className="flex flex-col justify-end items-end gap-1" style={{width: '100px'}}>
-                        <div className="text-justify text-figma-placeholder text-xs font-medium leading-6" style={{fontSize: '12px', lineHeight: '18px'}}>
-                          {restaurant.distance}
-                        </div>
-                        <div className="text-justify text-figma-text text-xs font-semibold leading-6" style={{fontSize: '12px', lineHeight: '18px'}}>
-                          #{restaurant.rank}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
-              ))}
-            </div>
+
+                {/* Main Item */}
+                <div className="flex items-center gap-4">
+                  <div className="text-white text-6xl font-bold">
+                    {restaurant.rank}.
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="text-white text-sm font-medium">
+                      {restaurant.name}
+                    </div>
+                    {/* Stars */}
+                    <div className="flex gap-1">
+                      {[...Array(restaurant.rating)].map((_, starIndex) => (
+                        <img
+                          key={starIndex}
+                          src="/Star-vector.svg"
+                          alt="star"
+                          width="14"
+                          height="13"
+                        />
+                      ))}
+                    </div>
+                    <div className="text-neutral-400 text-xs">
+                      {restaurant.address}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                {index < displayRestaurants.length - 1 && (
+                  <div className="w-full border-t border-zinc-600" />
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Barra de busca */}
-        <div className="absolute bg-figma-gray-dark rounded-full" style={{width: '240px', height: '32px', left: '480px', top: '720px'}} />
-        <div className="absolute text-center text-figma-placeholder text-xs font-normal leading-6" style={{left: '490px', top: '728px', fontSize: '10px', lineHeight: '18px'}}>
-          Pesquisar
-        </div>
-
-        {/* Loading state */}
-        {displayRestaurants.length === 0 && (
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <LoadingSpinner size="lg" />
-          </div>
-        )}
-
-        {/* Indicador de scroll */}
-        {sortedCategories.length > 4 && (
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-figma-placeholder text-xs opacity-50">
-            Scroll para ver mais
-          </div>
-        )}
       </div>
+
+      {/* Mobile Layout */}
+      <div 
+        className="flex lg:hidden w-full min-h-screen font-alexandria"
+        style={{
+          paddingTop: '20px',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          background: '#181818',
+          overflow: 'hidden',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          gap: '10px'
+        }}
+      >
+        <div style={{
+          width: '353px',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          alignItems: 'flex-start',
+          gap: '20px',
+          display: 'inline-flex'
+        }}>
+          {/* Logo */}
+          <div style={{
+            alignSelf: 'stretch',
+            color: '#BCBCBC',
+            fontSize: '16px',
+            fontFamily: 'Alexandria',
+            fontWeight: '500',
+            lineHeight: '23px',
+            wordWrap: 'break-word'
+          }}>
+            sabora
+          </div>
+
+          {/* Main Container - ajustado para conteúdo dinâmico */}
+          <div style={{
+            alignSelf: 'stretch',
+            minHeight: 'fit-content',
+            paddingTop: '15px',
+            paddingBottom: '100px', // espaço para o SearchBar flutuante
+            background: '#3D3D3D',
+            borderTopLeftRadius: '20px',
+            borderTopRightRadius: '20px',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            gap: '10px',
+            display: 'inline-flex'
+          }}>
+            <div style={{
+              width: '353px',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              gap: '29px',
+              display: 'inline-flex'
+            }}>
+              <div style={{
+                alignSelf: 'stretch',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                gap: '25px',
+                display: 'flex'
+              }}>
+                {/* Header */}
+                <div style={{
+                  alignSelf: 'stretch',
+                  paddingLeft: '20px',
+                  paddingRight: '20px',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  display: 'inline-flex'
+                }}>
+                  <div style={{
+                    textAlign: 'justify',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontFamily: 'Alexandria',
+                    fontWeight: '400',
+                    lineHeight: '18px',
+                    wordWrap: 'break-word'
+                  }}>
+                    Top 5
+                  </div>
+                  <div style={{
+                    textAlign: 'justify',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontFamily: 'Alexandria',
+                    fontWeight: '400',
+                    lineHeight: '18px',
+                    wordWrap: 'break-word'
+                  }}>
+                    Restaurantes 5 estrelas
+                  </div>
+                </div>
+
+                {/* Restaurant Cards */}
+                <div style={{
+                  width: '340px',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                  gap: '10px',
+                  display: 'flex'
+                }}>
+                  {displayRestaurants.slice(0, 5).map((restaurant, index) => (
+                    <div key={restaurant.id}>
+                      <div style={{
+                        width: '313px',
+                        height: '127px',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        alignItems: 'flex-start',
+                        display: 'flex'
+                      }}>
+                        {/* Distance */}
+                        <div style={{
+                          alignSelf: 'stretch',
+                          justifyContent: 'flex-end',
+                          alignItems: 'center',
+                          gap: '10px',
+                          display: 'inline-flex'
+                        }}>
+                          <div style={{
+                            textAlign: 'justify',
+                            color: '#575757',
+                            fontSize: '12px',
+                            fontFamily: 'Alexandria',
+                            fontWeight: '500',
+                            lineHeight: '23px',
+                            wordWrap: 'break-word'
+                          }}>
+                            {restaurant.distance}
+                          </div>
+                        </div>
+
+                        {/* Main Item */}
+                        <div style={{
+                          alignSelf: 'stretch',
+                          justifyContent: 'flex-start',
+                          alignItems: 'center',
+                          gap: '10px',
+                          display: 'inline-flex'
+                        }}>
+                          {/* Number */}
+                          <div style={{
+                            textAlign: 'justify',
+                            color: 'white',
+                            fontSize: '60px',
+                            fontFamily: 'Alexandria',
+                            fontWeight: '600',
+                            lineHeight: '55px',
+                            wordWrap: 'break-word'
+                          }}>
+                            {restaurant.rank}.
+                          </div>
+
+                          {/* Info */}
+                          <div style={{
+                            width: '223px',
+                            flexDirection: 'column',
+                            justifyContent: 'flex-start',
+                            alignItems: 'flex-start',
+                            gap: '10px',
+                            display: 'inline-flex'
+                          }}>
+                            <div style={{
+                              width: '185px',
+                              flexDirection: 'column',
+                              justifyContent: 'flex-start',
+                              alignItems: 'flex-start',
+                              gap: '5px',
+                              display: 'flex'
+                            }}>
+                              <div style={{
+                                alignSelf: 'stretch',
+                                textAlign: 'justify',
+                                color: 'white',
+                                fontSize: '14px',
+                                fontFamily: 'Alexandria',
+                                fontWeight: '500',
+                                lineHeight: '18px',
+                                wordWrap: 'break-word'
+                              }}>
+                                {restaurant.name}
+                              </div>
+                              {/* Stars */}
+                              <div style={{
+                                display: 'flex',
+                                gap: '2px',
+                                alignItems: 'center'
+                              }}>
+                                {[...Array(restaurant.rating)].map((_, starIndex) => (
+                                  <img 
+                                    key={starIndex}
+                                    src="/Star-vector.svg" 
+                                    alt="star" 
+                                    width="14" 
+                                    height="13"
+                                    style={{ display: 'block' }}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <div style={{
+                              alignSelf: 'stretch',
+                              textAlign: 'justify',
+                              color: '#919191',
+                              fontSize: '12px',
+                              fontFamily: 'Alexandria',
+                              fontWeight: '400',
+                              lineHeight: '23px',
+                              wordWrap: 'break-word'
+                            }}>
+                              {restaurant.address}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {index < displayRestaurants.slice(0, 5).length - 1 && (
+                        <div style={{
+                          alignSelf: 'stretch',
+                          height: '0px',
+                          outline: '1px #575757 solid',
+                          outlineOffset: '-0.50px'
+                        }} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SearchBar Flutuante - Responsivo */}
+      <div className="fixed bottom-6 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+        <SearchBar 
+          onSearch={(query) => {
+            console.log('Pesquisando:', query)
+            setSearchQuery(query)
+          }}
+          placeholder="Pesquisar"
+          className="transition-all duration-300 ease-in-out"
+          style={{ 
+            backgroundColor: '#181818',
+            width: `${getSearchBarWidth()}px`,
+            minHeight: `${getSearchBarHeight()}px`,
+            maxWidth: '280px'
+          }}
+        />
+      </div>
+
+      {/* Loading state */}
+      {displayRestaurants.length === 0 && (
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <LoadingSpinner size="lg" />
+        </div>
+      )}
     </div>
   )
 }

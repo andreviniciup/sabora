@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import SearchBar from '../components/SearchBar'
 
 // Dados mockados para demonstração
 const MOCK_RESTAURANTS = [
@@ -44,122 +45,259 @@ const SearchResults = () => {
   const displayLoading = loading && restaurants.length === 0
 
   return (
-    <div className="min-h-screen bg-figma-bg font-alexandria overflow-hidden">
-      {/* Container principal seguindo o design do Figma */}
-      <div className="Version2Resposta relative w-full h-full max-w-screen-xl max-h-screen mx-auto" style={{width: '1200px', height: '800px'}}>
-        
-        {/* Logo sabora */}
-        <div className="absolute left-8 top-12 text-center text-figma-placeholder text-lg font-medium leading-6" style={{left: '30px', top: '50px', fontSize: '18px', lineHeight: '20px'}}>
-          sabora
-        </div>
-
-        {/* Texto de resposta */}
-        <div className="absolute left-30 top-32 text-justify" style={{width: '350px', left: '120px', top: '130px'}}>
-          <span className="text-figma-text text-2xl font-medium leading-6" style={{fontSize: '28px', lineHeight: '20px'}}>
-            Sua lista está pronta! <br/>
-          </span>
-          <span className="text-figma-text text-xl font-medium leading-6" style={{fontSize: '20px', lineHeight: '20px'}}>
-            <br/>Estes são os restaurantes mais interessantes e saborosos perto de você. <br/><br/>
-          </span>
-          <span className="text-figma-text text-lg font-medium leading-6" style={{fontSize: '18px', lineHeight: '20px'}}>
-            Prepare-se para se surpreender a cada prato.
-          </span>
-        </div>
-
-        {/* Título dos restaurantes */}
-        <div className="absolute left-160 top-32 text-justify text-figma-text text-xl font-medium leading-6" style={{left: '650px', top: '130px', fontSize: '20px', lineHeight: '20px'}}>
-          Restaurantes 5 estrelas
-        </div>
-
-        {/* Lista de restaurantes */}
-        <div className="space-y-6">
-          {displayLoading ? (
-            <div className="flex justify-center py-12">
-              <LoadingSpinner size="lg" />
+    <div className="min-h-screen bg-neutral-900 font-alexandria overflow-hidden">
+      {/* Layout Mobile */}
+      <div className="lg:hidden px-[19px] py-[35px] inline-flex justify-start items-center gap-2.5 overflow-hidden">
+        <div className="w-[353px] inline-flex flex-col justify-start items-start gap-8">
+          {/* Logo */}
+          <div className="self-stretch justify-start text-stone-300 text-base font-medium font-['Alexandria'] leading-[23px]">
+            sabora
+          </div>
+          
+          {/* Texto de resposta */}
+          <div className="w-[343px] h-[156px] text-justify justify-start">
+            <span className="text-zinc-300 text-2xl font-medium font-['Alexandria'] leading-[23px]">
+              Sua lista está pronta! <br/><br/>
+            </span>
+            <span className="text-zinc-300 text-base font-medium font-['Alexandria'] leading-[23px]">
+              Estes são os restaurantes mais interessantes e saborosos perto de você. <br/>
+            </span>
+            <span className="text-zinc-300 text-2xl font-medium font-['Alexandria'] leading-[23px]">
+              <br/>
+            </span>
+            <span className="text-zinc-300 text-sm font-medium font-['Alexandria'] leading-[23px]">
+              Prepare-se para se surpreender a cada prato.
+            </span>
+          </div>
+          
+          {/* Frame 33 */}
+          <div className="self-stretch flex flex-col justify-start items-start gap-[19px]">
+            {/* Título */}
+            <div className="self-stretch p-2.5 inline-flex justify-start items-center gap-2.5">
+              <div className="text-justify justify-start text-white text-2xl font-medium font-['Alexandria'] leading-[23px]">
+                Restaurantes 5 estrelas
+              </div>
             </div>
-          ) : displayRestaurants.length > 0 ? (
-            displayRestaurants.slice(0, 3).map((restaurant, index) => (
-              <div 
-                key={restaurant.id}
-                className="absolute bg-figma-gray rounded-2xl flex flex-col justify-start items-start gap-2.5"
-                style={{
-                  width: '420px',
-                  padding: '16px 32px',
-                  left: '650px',
-                  top: `${170 + (index * 150)}px`,
-                  borderRadius: '16px'
-                }}
-              >
-                <div className="w-full flex flex-col justify-start items-start gap-3">
-                  {/* Distância */}
-                  <div className="w-full p-2 flex justify-end items-center gap-2">
-                    <div className="text-justify text-figma-placeholder text-xs font-medium leading-6" style={{fontSize: '12px', lineHeight: '18px'}}>
-                      {restaurant.distance}
-                    </div>
+            
+            {/* Frame 31 */}
+            <div className="self-stretch flex flex-col justify-start items-center gap-[13px]">
+              {/* Frame 30 - Lista de restaurantes */}
+              <div className="self-stretch flex flex-col justify-start items-start gap-[13px]">
+                {displayLoading ? (
+                  <div className="flex justify-center py-12">
+                    <LoadingSpinner size="lg" />
                   </div>
-                  
-                  {/* Conteúdo principal */}
-                  <div className="flex justify-start items-center gap-2">
-                    {/* Número */}
-                    <div className="text-justify text-figma-text font-semibold leading-6" style={{fontSize: '96px', lineHeight: '18px'}}>
-                      {index + 1}.
-                    </div>
-                    
-                    {/* Informações */}
-                    <div className="w-60 flex flex-col justify-start items-start gap-2" style={{width: '240px'}}>
-                      <div className="w-40 flex flex-col justify-start items-start gap-2" style={{width: '160px'}}>
-                        <div className="w-full text-justify text-figma-text text-sm font-medium leading-6" style={{fontSize: '14px', lineHeight: '18px'}}>
-                          {restaurant.name}
+                ) : displayRestaurants.length > 0 ? (
+                  displayRestaurants.slice(0, 3).map((restaurant, index) => (
+                    <div key={restaurant.id} className="self-stretch p-5 bg-neutral-700 rounded-[20px] flex flex-col justify-start items-start gap-2.5">
+                      <div className="self-stretch flex flex-col justify-start items-start">
+                        {/* Distância */}
+                        <div className="self-stretch inline-flex justify-end items-center gap-2.5">
+                          <div className="text-justify justify-start text-zinc-600 text-xs font-medium font-['Alexandria'] leading-[23px]">
+                            {restaurant.distance}
+                          </div>
+                        </div>
+                        
+                        {/* Conteúdo principal */}
+                        <div className="self-stretch inline-flex justify-start items-center gap-2.5">
+                          <div className="text-justify justify-start text-white text-8xl font-semibold font-['Alexandria'] leading-[23px]">
+                            {index + 1}.
+                          </div>
+                          <div className="w-[223px] inline-flex flex-col justify-start items-start gap-2.5">
+                            <div className="w-[185px] flex flex-col justify-start items-start gap-[5px]">
+                              <div className="self-stretch text-justify justify-start text-white text-base font-medium font-['Alexandria'] leading-[23px]">
+                                {restaurant.name}
+                              </div>
+                              {/* Stars */}
+                              <div className="flex items-center gap-1">
+                                {[...Array(restaurant.rating)].map((_, starIndex) => (
+                                  <svg 
+                                    key={starIndex}
+                                    width="16" 
+                                    height="15" 
+                                    viewBox="0 0 20 19" 
+                                    fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path 
+                                      d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z" 
+                                      fill="#C5AA50"
+                                    />
+                                  </svg>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="self-stretch text-justify justify-start text-neutral-400 text-xs font-normal font-['Alexandria'] leading-[23px]">
+                              {restaurant.address}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="w-full text-justify text-figma-placeholder text-xs font-normal leading-6" style={{fontSize: '10px', lineHeight: '18px'}}>
-                        {restaurant.address}
-                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-neutral-400 text-lg">
+                      {currentQuery ? 
+                        'Nenhum restaurante encontrado. Tente uma busca diferente.' :
+                        'Faça uma busca para ver os restaurantes.'
+                      }
+                    </p>
                   </div>
+                )}
+              </div>
+              
+              {/* Botão Ver Completo */}
+              {displayRestaurants.length > 0 && (
+                <div className="w-[353px] h-8 p-2.5 inline-flex justify-center items-center gap-2.5">
+                  <Link 
+                    to="/complete-list"
+                    className="text-justify justify-start text-white text-xs font-normal font-['Alexandria'] underline leading-[23px] hover:text-neutral-400 transition-colors"
+                  >
+                    Ver Completo
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Layout Desktop */}
+      <div className="hidden lg:block w-full max-w-[1200px] h-screen px-[80px] py-[60px] bg-neutral-900 inline-flex flex-col justify-center items-center gap-2.5 overflow-hidden mx-auto">
+        <div className="w-full max-w-[1040px] flex flex-col justify-start items-start gap-[40px]">
+          {/* Logo */}
+          <div className="p-2.5 inline-flex justify-center items-center gap-2.5">
+            <div className="text-center justify-start text-stone-300 text-xl font-medium font-['Alexandria'] leading-[23px]">
+              sabora
+            </div>
+          </div>
+          
+          {/* Frame 19 */}
+          <div className="self-stretch inline-flex justify-start items-start gap-[150px]">
+            {/* Frame 18 - Texto de resposta */}
+            <div className="p-2.5 flex justify-center items-center gap-2.5">
+              <div className="w-[320px] text-justify justify-start">
+                <span className="text-zinc-300 text-[24px] font-medium font-['Alexandria'] leading-[20px]">
+                  Sua lista está pronta! <br/>
+                </span>
+                <span className="text-zinc-300 text-lg font-medium font-['Alexandria'] leading-[18px]">
+                  <br/>Estes são os restaurantes mais interessantes e saborosos perto de você. <br/><br/>
+                </span>
+                <span className="text-zinc-300 text-base font-medium font-['Alexandria'] leading-[16px]">
+                  Prepare-se para se surpreender a cada prato.
+                </span>
+              </div>
+            </div>
+            
+            {/* Frame 16 - Lista de restaurantes */}
+            <div className="w-[450px] inline-flex flex-col justify-center items-center gap-[8px]">
+              {/* Título */}
+              <div className="self-stretch p-2.5 inline-flex justify-start items-center gap-2.5">
+                <div className="text-justify justify-start text-white text-xl font-medium font-['Alexandria'] leading-[18px]">
+                  Restaurantes 5 estrelas
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-figma-placeholder text-lg">
-                {currentQuery ? 
-                  'Nenhum restaurante encontrado. Tente uma busca diferente.' :
-                  'Faça uma busca para ver os restaurantes.'
-                }
-              </p>
+              
+              {/* Frame 14 - Lista */}
+              <div className="w-[440px] flex flex-col justify-start items-start gap-2.5">
+                {displayLoading ? (
+                  <div className="flex justify-center py-12">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                ) : displayRestaurants.length > 0 ? (
+                  displayRestaurants.slice(0, 3).map((restaurant, index) => (
+                    <div key={restaurant.id} className="self-stretch px-6 py-3 bg-neutral-700 rounded-[16px] flex flex-col justify-start items-start gap-2">
+                      <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                        {/* Distância */}
+                        <div className="self-stretch p-1 inline-flex justify-end items-center gap-2">
+                          <div className="text-justify justify-start text-zinc-600 text-xs font-medium font-['Alexandria'] leading-[16px]">
+                            {restaurant.distance}
+                          </div>
+                        </div>
+                        
+                        {/* Item principal */}
+                        <div className="inline-flex justify-start items-center gap-2">
+                          <div className="text-justify justify-start text-white text-6xl font-semibold font-['Alexandria'] leading-[16px]">
+                            {index + 1}.
+                          </div>
+                          <div className="w-[240px] inline-flex flex-col justify-start items-start gap-2">
+                            <div className="w-[140px] flex flex-col justify-start items-start gap-1">
+                              <div className="self-stretch text-justify justify-start text-white text-sm font-medium font-['Alexandria'] leading-[16px]">
+                                {restaurant.name}
+                              </div>
+                              {/* Stars */}
+                              <div className="flex items-center gap-1">
+                                {[...Array(restaurant.rating)].map((_, starIndex) => (
+                                  <svg 
+                                    key={starIndex}
+                                    width="14" 
+                                    height="13" 
+                                    viewBox="0 0 20 19" 
+                                    fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path 
+                                      d="M10 0L12.2451 6.90983H19.5106L13.6327 11.1803L15.8779 18.0902L10 13.8197L4.12215 18.0902L6.36729 11.1803L0.489435 6.90983H7.75486L10 0Z" 
+                                      fill="#C5AA50"
+                                    />
+                                  </svg>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="self-stretch text-justify justify-start text-neutral-400 text-xs font-normal font-['Alexandria'] leading-[14px]">
+                              {restaurant.address}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-neutral-400 text-lg">
+                      {currentQuery ? 
+                        'Nenhum restaurante encontrado. Tente uma busca diferente.' :
+                        'Faça uma busca para ver os restaurantes.'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Botão Ver Completo */}
+              {displayRestaurants.length > 0 && (
+                <div className="w-[440px] p-2 inline-flex justify-center items-center gap-2">
+                  <Link 
+                    to="/complete-list"
+                    className="text-justify justify-start text-white text-sm font-normal font-['Alexandria'] underline leading-[18px] hover:text-neutral-400 transition-colors"
+                  >
+                    Ver Completo
+                  </Link>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Barra de busca */}
-        <div className="absolute bg-figma-gray rounded-full" style={{width: '330px', height: '32px', left: '120px', top: '600px'}}>
-          <div className="absolute text-center text-figma-placeholder text-xs font-normal leading-6" style={{width: '50px', left: '12px', top: '6px', fontSize: '10px', lineHeight: '18px'}}>
-            Pesquisar
           </div>
         </div>
-
-        {/* Botão Ver Completo */}
-        {displayRestaurants.length > 0 && (
-          <div className="absolute p-2 justify-center items-center gap-2" style={{left: '840px', top: '630px'}}>
-            <Link 
-              to="/complete-list"
-              className="text-justify text-figma-text text-xs font-normal underline leading-6 hover:text-figma-placeholder transition-colors" 
-              style={{fontSize: '12px', lineHeight: '18px'}}
-            >
-              Ver Completo
-            </Link>
-          </div>
-        )}
-
-        {/* Error message */}
-        {error && (
-          <div className="absolute left-30 top-80 bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400" style={{left: '120px', top: '320px'}}>
-            <p className="font-medium">Erro na busca</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
       </div>
+
+      {/* SearchBar Flutuante - Responsivo */}
+      <div className="fixed bottom-6 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+        <SearchBar 
+          onSearch={(query) => console.log('Nova pesquisa:', query)}
+          placeholder="Pesquisar"
+          className="w-[280px] lg:w-[388px] transition-all duration-300 ease-in-out"
+          style={{ backgroundColor: '#181818' }}
+        />
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="absolute left-5 top-80 lg:left-[100px] lg:bottom-32 bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
+          <p className="font-medium">Erro na busca</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
     </div>
   )
 }

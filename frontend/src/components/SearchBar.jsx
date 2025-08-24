@@ -1,55 +1,118 @@
-import React from 'react'
+import React, { useState } from 'react'
 import LoadingSpinner from './LoadingSpinner'
 
 const SearchBar = ({ 
-  value, 
-  onChange, 
+  value: externalValue, 
+  onChange: externalOnChange, 
   onFocus, 
   onBlur, 
   onKeyPress, 
   onSearch, 
   placeholder = "Pesquisar", 
   loading = false,
-  disabled = false 
+  disabled = false,
+  className = "",
+  style = {},
+  controlled = false // Se true, usa value/onChange externos, senão gerencia internamente
 }) => {
+  const [internalValue, setInternalValue] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
+  
+  // Decide se usa valor externo ou interno
+  const value = controlled ? externalValue : internalValue
+  const setValue = controlled ? externalOnChange : setInternalValue
+
+  const handleChange = (e) => {
+    const newValue = e.target.value
+    if (controlled && externalOnChange) {
+      externalOnChange(e)
+    } else {
+      setInternalValue(newValue)
+    }
+  }
+
+  const handleSearch = () => {
+    if (!value.trim() || disabled || loading) return
+    if (onSearch) {
+      onSearch(controlled ? value : value)
+    }
+  }
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+    if (onKeyPress) {
+      onKeyPress(e)
+    }
+  }
+
+  const handleFocus = (e) => {
+    setIsFocused(true)
+    if (onFocus) {
+      onFocus(e)
+    }
+  }
+
+  const handleBlur = (e) => {
+    setIsFocused(false)
+    if (onBlur) {
+      onBlur(e)
+    }
+  }
+
   return (
-    <div className="relative w-full h-10 bg-figma-gray rounded-full">
-      <input 
-        type="text" 
-        value={value}
-        onChange={onChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onKeyPress={onKeyPress}
-        placeholder=""
-        disabled={disabled || loading}
-        className="w-full h-full bg-transparent text-figma-text placeholder-figma-placeholder rounded-full focus:outline-none font-alexandria text-sm disabled:opacity-50"
-        style={{padding: '0 60px 0 20px', fontSize: '14px'}}
-      />
+    <div 
+      className={`Searchinput h-10 px-1 py-[5px] rounded-[999px] inline-flex justify-between items-center ${className}`} 
+      style={{
+        backgroundColor: style?.backgroundColor || '#525252', // bg-neutral-700 como fallback
+        ...style
+      }}
+    >
+      {/* Container do input */}
+      <div className="Frame37 px-2.5 flex justify-center items-center gap-2.5 flex-1 relative">
+        <input 
+          type="text" 
+          value={value}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyPress={handleKeyPress}
+          placeholder=""
+          disabled={disabled || loading}
+          className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none font-alexandria text-sm disabled:opacity-50"
+          style={{fontSize: '14px', fontFamily: 'Alexandria', fontWeight: '400', lineHeight: '23px'}}
+        />
+        
+        {/* Texto "Pesquisar" quando vazio e não focado */}
+        {!value.trim() && !isFocused && (
+          <div className="Pesquisar absolute left-2.5 top-1/2 transform -translate-y-1/2 text-neutral-400 text-sm font-normal font-['Alexandria'] leading-[23px] pointer-events-none">
+            {placeholder}
+          </div>
+        )}
+      </div>
       
-      {/* Texto "Pesquisar" no lado esquerdo */}
-      {!value.trim() && (
-        <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-figma-placeholder text-xs font-normal leading-6 cursor-pointer">
-          {placeholder}
-        </div>
-      )}
-      
-      {/* Botão circular no lado direito */}
-      {value.trim() && (
-        <button 
-          onClick={onSearch}
-          disabled={!value.trim() || loading || disabled}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-stone-400 hover:bg-stone-50 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
+      {/* Botão de ação */}
+      <button 
+        onClick={handleSearch}
+        disabled={!value.trim() || loading || disabled}
+                  className={`ButtonSend w-[30px] h-[30px] p-2.5 rounded-full flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed bg-white`}
+      >
+                  {loading ? (
             <LoadingSpinner size="sm" />
           ) : (
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <img
+              src="/arrow-vector.svg"
+              alt="arrow"
+              className="ArrowVector w-3 h-3"
+              style={{
+                transform: isFocused ? 'rotate(-90deg)' : 'rotate(0deg)', 
+                transition: 'transform 0.3s ease',
+                filter: isFocused ? 'brightness(0.3)' : 'brightness(1)'
+              }}
+            />
           )}
-        </button>
-      )}
+      </button>
     </div>
   )
 }
