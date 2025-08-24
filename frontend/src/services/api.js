@@ -46,7 +46,24 @@ export const restaurantAPI = {
     }
   },
 
-  // Buscar restaurantes simples
+  // Buscar restaurantes com recomendação baseada em texto e localização
+  getRecommendations: async (text, latitude, longitude) => {
+    try {
+      const response = await api.post('/api/recommendations', {
+        text,
+        latitude,
+        longitude
+      })
+      return response.data
+    } catch (error) {
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data.message || 'Parâmetros de busca inválidos')
+      }
+      throw new Error(`Falha na busca: ${error.message}`)
+    }
+  },
+
+  // Buscar restaurantes simples (mantido para compatibilidade)
   getRestaurants: async (query = '', limit = 5) => {
     try {
       const response = await api.get('/api/restaurants', {
@@ -58,7 +75,7 @@ export const restaurantAPI = {
     }
   },
 
-  // Busca avançada
+  // Busca avançada (mantido para compatibilidade)
   searchRestaurants: async ({ query, location, maxResults = 5 }) => {
     try {
       const response = await api.post('/api/search', {
@@ -75,7 +92,7 @@ export const restaurantAPI = {
     }
   },
 
-  // Processar localização
+  // Processar localização (mantido para compatibilidade)
   processLocation: async (locationInput) => {
     try {
       const response = await api.post('/api/location', {

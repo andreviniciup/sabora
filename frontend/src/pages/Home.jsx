@@ -4,72 +4,24 @@ import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
 
-// Dados mockados para demonstração
-const MOCK_RESTAURANTS = [
-  {
-    id: "1",
-    name: "Restaurante Janga Praia",
-    rating: 5,
-    address: "Av. Silvio Carlos Viana, 1731 - Ponta Verde, Maceió - AL",
-    distance: "1 km de você",
-    rank: 1,
-    category: "Frutos do Mar",
-    price_level: 3
-  },
-  {
-    id: "2", 
-    name: "Piccola Villa",
-    rating: 5,
-    address: "R. Jangadeiros Alagoanos, 1564 - Pajuçara, Maceió - AL",
-    distance: "1 km de você",
-    rank: 2,
-    category: "Italiana",
-    price_level: 4
-  },
-  {
-    id: "3",
-    name: "Restaurante Caruva", 
-    rating: 5,
-    address: "R. Dep. José Lages, 813 - Ponta Verde, Maceió - AL",
-    distance: "1 km de você",
-    rank: 3,
-    category: "Regional",
-    price_level: 2
-  },
-  {
-    id: "4",
-    name: "Villa Gourmet",
-    rating: 4,
-    address: "R. das Flores, 123 - Centro, Maceió - AL",
-    distance: "2 km de você", 
-    rank: 4,
-    category: "Internacional",
-    price_level: 4
-  },
-  {
-    id: "5",
-    name: "Sabor da Terra",
-    rating: 4,
-    address: "Av. Brasil, 456 - Farol, Maceió - AL",
-    distance: "3 km de você",
-    rank: 5,
-    category: "Regional",
-    price_level: 2
-  }
-]
-
 const Home = () => {
   const [query, setQuery] = useState('')
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const { setRestaurants, setCurrentQuery, clearError, requestLocation } = useRestaurants()
+  const { 
+    searchRestaurants, 
+    loading, 
+    error, 
+    clearError, 
+    requestLocation,
+    location 
+  } = useRestaurants()
 
   // Solicitar localização automaticamente quando a página carregar
   useEffect(() => {
     const getLocation = async () => {
       try {
         const location = await requestLocation()
-        console.log(' Localização obtida:', location)
+        console.log('Localização obtida:', location)
         console.log('Latitude:', location?.latitude)
         console.log('Longitude:', location?.longitude)
         console.log('Precisão:', location?.accuracy, 'metros')
@@ -83,22 +35,23 @@ const Home = () => {
   const handleSearch = async () => {
     if (!query.trim()) return
 
+    console.log('Iniciando busca com query:', query)
+    console.log('Localização disponível:', location)
+
     try {
       clearError()
-      setLoading(true)
-      setCurrentQuery(query)
-
-      // Simular delay de carregamento
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // Usar dados mockados
-      setRestaurants(MOCK_RESTAURANTS)
+      
+      // Usar a função de busca real do contexto
+      await searchRestaurants(query)
+      
+      console.log('Busca concluída, navegando para resultados')
+      
+      // Navegar para resultados (a função searchRestaurants já trata os erros)
       navigate('/search-results')
       
     } catch (error) {
       console.error('Search error:', error)
-    } finally {
-      setLoading(false)
+      // O erro já é tratado no contexto, não precisa fazer nada aqui
     }
   }
 
@@ -144,6 +97,21 @@ const Home = () => {
               controlled={true}
               className="w-full"
             />
+            
+            {/* Mensagem de erro */}
+            {error && (
+              <div className="w-full bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
+                <p className="font-medium">Erro na busca</p>
+                <p>{error}</p>
+              </div>
+            )}
+            
+            {/* Aviso de localização */}
+            {!location && (
+              <div className="w-full bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 text-sm">
+                <p>⚠️ Permitindo acesso à localização para melhores resultados...</p>
+              </div>
+            )}
           </div>
           
           {/* Logo sabora na parte inferior */}
@@ -194,6 +162,21 @@ const Home = () => {
                 controlled={true}
                 className="w-60"
               />
+              
+              {/* Mensagem de erro mobile */}
+              {error && (
+                <div className="w-60 bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-xs text-center">
+                  <p className="font-medium">Erro na busca</p>
+                  <p>{error}</p>
+                </div>
+              )}
+              
+              {/* Aviso de localização mobile */}
+              {!location && (
+                <div className="w-60 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 text-xs text-center">
+                  <p>⚠️ Permitindo acesso à localização...</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

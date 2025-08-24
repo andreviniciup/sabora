@@ -13,17 +13,20 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.nlp.parser import QueryParser
 from src.processors.recommendation_engine import RecommendationEngine
-from src.models.restaurant import Restaurant, restaurants_to_dicts
+from src.models.restaurant import Restaurant, restaurants_to_dicts, MOCK_RESTAURANTS
 
 # configuracao do app
 app = Flask(__name__)
 
 # configurar cors para permitir comunicacao com frontend
-CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
+CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'])
 
 # instancias globais
 query_parser = QueryParser()
 recommendation_engine = RecommendationEngine()
+
+# inicializar engine com dados mockados
+recommendation_engine.set_restaurants(MOCK_RESTAURANTS)
 
 
 @app.route('/')
@@ -111,13 +114,13 @@ def get_recommendations():
         
         # passo 2: obter recomendacoes usando engine
         recommendations = recommendation_engine.get_recommendations_with_filters(
-            latitude=latitude,
-            longitude=longitude,
-            radius_km=filters.get('radius_km', 2.0),
-            max_results=5,
-            min_rating=filters.get('min_rating', 0.0),
-            cuisine_types=filters.get('cuisine_types'),
-            price_range=filters.get('price_range')
+            latitude,
+            longitude,
+            filters.get('radius_km', 2.0),
+            5,
+            filters.get('min_rating', 0.0),
+            filters.get('cuisine_types'),
+            filters.get('price_range')
         )
         
         # passo 3: converter para dicionarios para json

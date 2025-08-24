@@ -4,7 +4,7 @@ define a estrutura de dados central para restaurantes
 """
 
 from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 
 
 @dataclass
@@ -31,260 +31,22 @@ class Restaurant:
         recommendation_score: score de recomendacao (0-100)
     """
     
-    id: int = 1
-    name: str = "Bodega do Sertão"
-    latitude: float = -9.65333
-    longitude: float = -35.70920
-    rating: float = 4.6
-    cuisine_type: str = "Nordestina / self-service"
-    price_range: str = "medio"
-    address: str = "Av. Dr. Júlio Marques Luz, 62 — Jatiúca, Maceió-AL"
-    phone: Optional[str] = "(82) 3327-4446"
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = "Seg-Dom: 11h30-16h, 17h30-22h"
-    features: Optional[List[str]] = ["decoração temática", "buffet self-service", "culinária regional"]
+    id: int
+    name: str
+    latitude: float
+    longitude: float
+    rating: float
+    cuisine_type: str
+    price_range: str
+    address: str
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    opening_hours: Optional[str] = None
+    features: List[str] = field(default_factory=list)
     distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 2
-    name: str = "Janga Praia"
-    latitude: float = -9.66328
-    longitude: float = -35.70562
-    rating: float = 4.8
-    cuisine_type: str = "Brasileira, Frutos do mar"
-    price_range: str = "medio-alto"
-    address: str = "Av. Silvio Carlos Viana, 1731 — Ponta Verde, Maceió-AL"
-    phone: Optional[str] = "+55 82 98233-1030"
-    website: Optional[str] = "https://linktr.ee/PedidosJanga"
-    opening_hours: Optional[str] = "Dom-Qua: 12h-16h e 18h30-23h; Qui-Sáb: até 00h"
-    features: Optional[List[str]] = ["beira-mar", "frutos do mar", "opções vegetarianas/sem glúten", "entrega"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 3
-    name: str = "Maria Antonieta"
-    latitude: float = -9.65090
-    longitude: float = -35.70102
-    rating: float = 4.7
-    cuisine_type: str = "Italiana sofisticada"
-    price_range: str = "alto"
-    address: str = "Av. Dr. Antônio Gomes de Barros, 150 — Jatiúca, Maceió-AL"
-    phone: Optional[str] = "(82) 3202-8828"
-    website: Optional[str] = "https://mariaantonieta-al.com.br/"
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["ambiente elegante", "pratos elaborados (raviolone)", "ideal para jantar especial"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 4
-    name: str = "Divina Gula"
-    latitude: float = -9.64632
-    longitude: float = -35.70491
-    rating: float = 4.6
-    cuisine_type: str = "Mineira / Regional"
-    price_range: str = "alto"
-    address: str = "Av. Paulo Brandão Nogueira, 85 - Jatiúca, Maceió-AL"
-    phone: Optional[str] = "(82) 3235-1016"
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["ambiente acolhedor", "ingredientes frescos", "sofisticado"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 5
-    name: str = "Cheiro da Terra"
-    latitude: float = -9.671455999415862
-    longitude: float = -35.71602995613105
-    rating: float = 4.6
-    cuisine_type: str = "Nordestina / Buffet"
-    price_range: str = "medio"
-    address: str = "Av. Dr. Antônio Gouveia, 487 - Pajuçara, Maceió-AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["buffet", "ambiente rústico", "música ao vivo", "lojinha"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 6
-    name: str = "Micale Restaurante"
-    latitude: float = -9.6620031
-    longitude: float = -35.7079004
-    rating: float = 4.9
-    cuisine_type: str = "Mediterrânea / Frutos do mar"
-    price_range: str = "alto"
-    address: str = "R. Durval Guimarães, 1298 - Ponta Verde, Maceió - AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["vista", "frutos do mar", "vinhos", "coquetéis"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 7
-    name: str = "Lopana"
-    latitude: float = -9.6638247
-    longitude: float = -35.703948
-    rating: float = 4.5
-    cuisine_type: str = "Frutos do mar / Praia"
-    price_range: str = "medio"
-    address: str = "Av. Silvio Carlos Viana, 27 - Ponta Verde, Maceió-AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["beira-mar", "peixes fritos", "bebidas refrescantes"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 8
-    name: str = "Wanchako"
-    latitude: float = -9.6559706
-    longitude: float = -35.6999379
-    rating: float = 4.5
-    cuisine_type: str = "Peruana / Fusão"
-    price_range: str = "alto"
-    address: str = "Rua Prefeito Abdon Arroxelas, 147 - Ponta Verde, Maceió - AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["ceviche", "lomo saltado", "sofisticado"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 9
-    name: str = "759 Parrilla"
-    latitude: float = -9.6674273
-    longitude: float = -35.713476299999996
-    rating: float = 4.7
-    cuisine_type: str = "Steakhouse / Carnes"
-    price_range: str = "alto"
-    address: str = "Av. Dr. Antônio Gouveia, 759 - Pajuçara, Maceió-AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = "Qua-Seg: 11h30-23h30"
-    features: Optional[List[str]] = ["cortes nobres", "vinhos", "ambiente aconchegante"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 10
-    name: str = "Casa de Mãinha"
-    latitude: float = -9.6721042
-    longitude: float = -35.72336061581474
-    rating: float = 4.5
-    cuisine_type: str = "Nordestina / Caseira"
-    price_range: str = "baixo"
-    address: str = "R. Sá e Albuquerque, 417 - Jaraguá, Maceió - AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["caseira", "custo-benefício", "variado ambiente"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 11
-    name: str = "Armazém Guimarães"
-    latitude: float = -9.6509629
-    longitude: float = -35.70124324984265
-    rating: float = 4.6
-    cuisine_type: str = "Italiana"
-    price_range: Optional[str] = None
-    address: str = "Av. Dr. Antônio Gomes de Barros, 188 - Jatiúca, Maceió-AL, Parque Shopping Maceió"
-    phone: Optional[str] = "(82) 3325-4545"
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["pizza", "massas", "pratos tradicionais italianos"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 12
-    name: str = "SantOrégano Pizzas e Massas"
-    latitude: float = -9.55787404131403
-    longitude: float = -35.64056819093656
-    rating: float = 4.6
-    cuisine_type: str = "Pizzaria"
-    price_range: Optional[str] = None
-    address: str = "Rodovia AL-101 - Riacho Doce, Maceió-AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["pizza premiada (7ª do Brasil)", "saborosas opções veganas"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 13
-    name: str = "Kanoa Beach Bar"
-    latitude: float = -9.66390
-    longitude: float = -35.70578
-    rating: float = 4.3
-    cuisine_type: str = "Praia / Petiscos / Bar"
-    price_range: Optional[str] = None
-    address: str = "Orla de Ponta Verde - Av. Silvio Carlos Viana, 25 - Ponta Verde, Maceió - AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["à beira-mar", "petiscos", "música ao vivo", "aluguel de cadeiras"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 14
-    name: str = "Imperador dos Camarões"
-    latitude: float = -9.665197
-    longitude: float = -35.70998572308537
-    rating: float = 4.7
-    cuisine_type: str = "Frutos do mar"
-    price_range: Optional[str] = None
-    address: str = "Av. Dr. Antônio Gouveia, 21 - Pajuçara, Maceió - AL, 57030-170"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["chiclete de camarão", "variedade de frutos do mar", "custo-benefício"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
-
-    id: int = 15
-    name: str = "Picuí"
-    latitude: float = -9.669999226855426
-    longitude: float = -35.729869603577114
-    rating: float = 4.6
-    cuisine_type: str = "Carne de sol / Frutos do mar"
-    price_range: Optional[str] = None
-    address: str = "Av. da Paz, 1140 - Jaraguá, Maceió-AL"
-    phone: Optional[str] = ""
-    website: Optional[str] = ""
-    opening_hours: Optional[str] = ""
-    features: Optional[List[str]] = ["carne de sol", "frutos do mar", "chef renomado", "risoto"]
-    distance: Optional[float] = None
-    distance_formatted: Optional[str] = ""
-    rank: Optional[int] = 0
-    recommendation_score: Optional[float] = 0
+    distance_formatted: Optional[str] = None
+    rank: Optional[int] = None
+    recommendation_score: Optional[float] = None
     
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -395,6 +157,74 @@ class Restaurant:
             true se atender ao filtro
         """
         return self.rating >= min_rating
+
+
+# Dados mockados de restaurantes para desenvolvimento
+MOCK_RESTAURANTS = [
+    Restaurant(
+        id=1,
+        name="Bodega do Sertão",
+        latitude=-9.65333,
+        longitude=-35.70920,
+        rating=4.6,
+        cuisine_type="Nordestina / self-service",
+        price_range="medio",
+        address="Av. Dr. Júlio Marques Luz, 62 — Jatiúca, Maceió-AL",
+        phone="(82) 3327-4446",
+        opening_hours="Seg-Dom: 11h30-16h, 17h30-22h",
+        features=["decoração temática", "buffet self-service", "culinária regional"]
+    ),
+    Restaurant(
+        id=2,
+        name="Janga Praia",
+        latitude=-9.66328,
+        longitude=-35.70562,
+        rating=4.8,
+        cuisine_type="Brasileira, Frutos do mar",
+        price_range="medio-alto",
+        address="Av. Silvio Carlos Viana, 1731 — Ponta Verde, Maceió-AL",
+        phone="+55 82 98233-1030",
+        website="https://linktr.ee/PedidosJanga",
+        opening_hours="Dom-Qua: 12h-16h e 18h30-23h; Qui-Sáb: até 00h",
+        features=["beira-mar", "frutos do mar", "opções vegetarianas/sem glúten", "entrega"]
+    ),
+    Restaurant(
+        id=3,
+        name="Maria Antonieta",
+        latitude=-9.65090,
+        longitude=-35.70102,
+        rating=4.7,
+        cuisine_type="Italiana sofisticada",
+        price_range="alto",
+        address="Av. Dr. Antônio Gomes de Barros, 150 — Jatiúca, Maceió-AL",
+        phone="(82) 3202-8828",
+        website="https://mariaantonieta-al.com.br/",
+        features=["ambiente elegante", "pratos elaborados (raviolone)", "ideal para jantar especial"]
+    ),
+    Restaurant(
+        id=4,
+        name="Divina Gula",
+        latitude=-9.64632,
+        longitude=-35.70491,
+        rating=4.6,
+        cuisine_type="Mineira / Regional",
+        price_range="alto",
+        address="Av. Paulo Brandão Nogueira, 85 - Jatiúca, Maceió-AL",
+        phone="(82) 3235-1016",
+        features=["ambiente acolhedor", "ingredientes frescos", "sofisticado"]
+    ),
+    Restaurant(
+        id=5,
+        name="Cheiro da Terra",
+        latitude=-9.671455999415862,
+        longitude=-35.71602995613105,
+        rating=4.6,
+        cuisine_type="Nordestina / Buffet",
+        price_range="medio",
+        address="Av. Dr. Antônio Gouveia, 487 - Pajuçara, Maceió-AL",
+        features=["buffet", "ambiente rústico", "música ao vivo", "lojinha"]
+    )
+]
 
 
 # funcoes utilitarias para trabalhar com listas de restaurantes

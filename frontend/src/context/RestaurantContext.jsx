@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 import useGeolocation from '../hooks/useGeolocation'
 import locationService from '../services/locationService'
+import { restaurantAPI } from '../services/api'
 
 const RestaurantContext = createContext()
 
@@ -80,21 +81,41 @@ export const RestaurantProvider = ({ children }) => {
     }
   }
 
-  // Buscar restaurantes
+  // Buscar restaurantes com API real
   const searchRestaurants = async (query) => {
     try {
       setLoading(true)
       setCurrentQuery(query)
       setError(null)
 
-      // Simular busca (por enquanto)
-      setTimeout(() => {
+      // Verificar se temos localização
+      if (!location) {
+        throw new Error('Localização não disponível. Por favor, permita o acesso à localização.')
+      }
+
+      console.log('Buscando restaurantes com query:', query)
+      console.log('Localização atual:', location)
+
+      // Chamar API real do backend
+      const response = await restaurantAPI.getRecommendations(
+        query,
+        location.latitude,
+        location.longitude
+      )
+
+      console.log('Resposta da API:', response)
+
+      if (response.data && response.data.recommendations) {
+        setRestaurants(response.data.recommendations)
+      } else {
         setRestaurants([])
-        setLoading(false)
-      }, 1000)
+      }
 
     } catch (error) {
-      setError('Erro ao buscar restaurantes')
+      console.error('Erro ao buscar restaurantes:', error)
+      setError(error.message || 'Erro ao buscar restaurantes')
+      setRestaurants([])
+    } finally {
       setLoading(false)
     }
   }

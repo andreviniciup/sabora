@@ -286,7 +286,7 @@ const SearchResults = () => {
         <SearchBar 
           onSearch={(query) => console.log('Nova pesquisa:', query)}
           placeholder="Pesquisar"
-          className="w-[280px] lg:w-[388px] transition-all duration-300 ease-in-out"
+          className="w-[120px] lg:w-[200px] transition-all duration-300 ease-in-out"
           style={{ backgroundColor: '#181818' }}
         />
       </div>
