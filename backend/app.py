@@ -26,7 +26,14 @@ from src.utils.validators import business_validator
 app = Flask(__name__)
 
 # configurar cors para permitir comunicacao com frontend
-CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'])
+CORS(app, origins=[
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000', 
+    'http://localhost:5173', 
+    'http://127.0.0.1:5173',
+    'https://sabora.vercel.app',  # URL do seu frontend na Vercel
+    'https://*.vercel.app'  # Permite qualquer subdomínio da Vercel
+])
 
 # instancias globais
 query_parser = QueryParser()
@@ -270,8 +277,11 @@ def invalidate_cache_by_location():
 
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    
     app.run(
         host='0.0.0.0',
-        port=5000,
-        debug=True
+        port=port,
+        debug=debug
     )

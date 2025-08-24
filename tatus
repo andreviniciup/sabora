@@ -1,0 +1,421 @@
+[1mdiff --git a/backend/.env.example b/backend/.env.example[m
+[1mdeleted file mode 100644[m
+[1mindex cf7db51..0000000[m
+[1m--- a/backend/.env.example[m
+[1m+++ /dev/null[m
+[36m@@ -1,12 +0,0 @@[m
+[31m-# Configurações do Flask[m
+[31m-FLASK_DEBUG=True[m
+[31m-PORT=5000[m
+[31m-[m
+[31m-# Chave da API do Google Maps (OBRIGATÓRIA)[m
+[31m-GOOGLE_MAPS_API_KEY=sua_chave_aqui[m
+[31m-[m
+[31m-# Configurações do Redis (opcional)[m
+[31m-REDIS_URL=redis://localhost:6379/0[m
+[31m-[m
+[31m-# Configurações de segurança[m
+[31m-SECRET_KEY=sua_chave_secreta_aqui[m
+\ No newline at end of file[m
+[1mdiff --git a/backend/app.py b/backend/app.py[m
+[1mindex 5a686be..49a193e 100644[m
+[1m--- a/backend/app.py[m
+[1m+++ b/backend/app.py[m
+[36m@@ -7,6 +7,10 @@[m [mfrom flask import Flask, jsonify, request[m
+ from flask_cors import CORS[m
+ import sys[m
+ import os[m
+[32m+[m[32mfrom dotenv import load_dotenv[m
+[32m+[m
+[32m+[m[32m# carregar variaveis de ambiente do arquivo .env[m
+[32m+[m[32mload_dotenv()[m
+ [m
+ # adicionar o diretorio src ao path para imports[m
+ sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))[m
+[36m@@ -59,6 +63,19 @@[m [mdef health_check():[m
+     }), 200[m
+ [m
+ [m
+[32m+[m[32m@app.route('/api/config', methods=['GET'])[m
+[32m+[m[32mdef get_config():[m
+[32m+[m[32m    """[m
+[32m+[m[32m    endpoint para verificar configurações carregadas[m
+[32m+[m[32m    """[m
+[32m+[m[32m    return jsonify({[m
+[32m+[m[32m        'google_maps_api_key_configured': bool(os.getenv('GOOGLE_MAPS_API_KEY')),[m
+[32m+[m[32m        'redis_host': os.getenv('REDIS_HOST', 'localhost'),[m
+[32m+[m[32m        'redis_port': os.getenv('REDIS_PORT', '6379'),[m
+[32m+[m[32m        'flask_env': os.getenv('FLASK_ENV', 'development')[m
+[32m+[m[32m    }), 200[m
+[32m+[m
+[32m+[m
+ @app.route('/api/recommendations', methods=['POST'])[m
+ def get_recommendations():[m
+     """[m
+[36m@@ -102,10 +119,10 @@[m [mdef get_recommendations():[m
+         latitude = float(data.get('latitude'))[m
+         longitude = float(data.get('longitude'))[m
+         [m
+[31m-        # passo 1: extrair filtros do texto usando parser[m
+[32m+[m[32m        # extrair filtros do texto usando parser[m
+         filters = query_parser.parse_query(text)[m
+         [m
+[31m-        # passo 2: obter recomendacoes usando engine com cache[m
+[32m+[m[32m        # obter recomendacoes usando engine com cache[m
+         recommendations = recommendation_engine.get_recommendations_with_cache([m
+             latitude,[m
+             longitude,[m
+[36m@@ -114,10 +131,13 @@[m [mdef get_recommendations():[m
+             use_cache=True[m
+         )[m
+         [m
+[31m-        # passo 3: converter para dicionarios para json[m
+[32m+[m[32m        # converter para dicionarios para json[m
+         recommendations_dict = restaurants_to_dicts(recommendations)[m
+         [m
+[31m-        return jsonify({[m
+[32m+[m[32m        # Gerar título dinâmico[m
+[32m+[m[32m        dynamic_title = query_parser.generate_dynamic_title(text)[m
+[32m+[m[41m        [m
+[32m+[m[32m        response_data = {[m
+             'status': 'success',[m
+             'message': f'encontrados {len(recommendations)} restaurantes',[m
+             'data': {[m
+[36m@@ -127,9 +147,12 @@[m [mdef get_recommendations():[m
+                     'longitude': longitude[m
+                 },[m
+                 'filters_extracted': filters,[m
+[31m-                'original_query': text[m
+[32m+[m[32m                'original_query': text,[m
+[32m+[m[32m                'dynamic_title': dynamic_title[m
+             }[m
+[31m-        }), 200[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        return jsonify(response_data), 200[m
+         [m
+     except Exception as e:[m
+         return jsonify({[m
+[1mdiff --git a/backend/env.example b/backend/env.example[m
+[1mdeleted file mode 100644[m
+[1mindex a11d57e..0000000[m
+[1m--- a/backend/env.example[m
+[1m+++ /dev/null[m
+[36m@@ -1,23 +0,0 @@[m
+[31m-# Configurações do Flask[m
+[31m-FLASK_DEBUG=True[m
+[31m-PORT=5000[m
+[31m-[m
+[31m-# Chave da API do Google Maps (OBRIGATÓRIA para dados reais)[m
+[31m-# Obtenha em: https://console.cloud.google.com/[m
+[31m-# APIs necessárias: Places API, Geocoding API[m
+[31m-GOOGLE_MAPS_API_KEY=sua_chave_aqui[m
+[31m-[m
+[31m-# Configurações do Redis (opcional, para cache)[m
+[31m-# URL do Redis para cache de recomendações[m
+[31m-# Formato: redis://[username:password@]host[:port][/database][m
+[31m-REDIS_URL=redis://localhost:6379/0[m
+[31m-[m
+[31m-# Configurações de Cache[m
+[31m-CACHE_ENABLED=true[m
+[31m-CACHE_TTL_SECONDS=3600[m
+[31m-[m
+[31m-# Configurações de segurança[m
+[31m-SECRET_KEY=sua_chave_secreta_aqui[m
+[31m-[m
+[31m-# Configurações de CORS[m
+[31m-ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173[m
+[1mdiff --git a/backend/src/algorithms/__init__.py b/backend/src/algorithms/__init__.py[m
+[1mindex e69de29..b28b04f 100644[m
+[1m--- a/backend/src/algorithms/__init__.py[m
+[1m+++ b/backend/src/algorithms/__init__.py[m
+[36m@@ -0,0 +1,3 @@[m
+[32m+[m
+[32m+[m
+[32m+[m
+[1mdiff --git a/backend/src/algorithms/__pycache__/__init__.cpython-312.pyc b/backend/src/algorithms/__pycache__/__init__.cpython-312.pyc[m
+[1mindex 264efae..bd982c4 100644[m
+Binary files a/backend/src/algorithms/__pycache__/__init__.cpython-312.pyc and b/backend/src/algorithms/__pycache__/__init__.cpython-312.pyc differ
+[1mdiff --git a/backend/src/algorithms/__pycache__/search_algorithms.cpython-312.pyc b/backend/src/algorithms/__pycache__/search_algorithms.cpython-312.pyc[m
+[1mindex e4552e9..b9db2d7 100644[m
+Binary files a/backend/src/algorithms/__pycache__/search_algorithms.cpython-312.pyc and b/backend/src/algorithms/__pycache__/search_algorithms.cpython-312.pyc differ
+[1mdiff --git a/backend/src/algorithms/__pycache__/sorting_algorithms.cpython-312.pyc b/backend/src/algorithms/__pycache__/sorting_algorithms.cpython-312.pyc[m
+[1mindex 340e379..654dbf2 100644[m
+Binary files a/backend/src/algorithms/__pycache__/sorting_algorithms.cpython-312.pyc and b/backend/src/algorithms/__pycache__/sorting_algorithms.cpython-312.pyc differ
+[1mdiff --git a/backend/src/algorithms/search_algorithms.py b/backend/src/algorithms/search_algorithms.py[m
+[1mindex ec396b8..2055b43 100644[m
+[1m--- a/backend/src/algorithms/search_algorithms.py[m
+[1m+++ b/backend/src/algorithms/search_algorithms.py[m
+[36m@@ -52,7 +52,7 @@[m [mif __name__ == '__main__':[m
+     ][m
+     [m
+     # Exemplo com objetos Restaurant (modelo real do projeto)[m
+[31m-    from ..models.restaurant import Restaurant[m
+[32m+[m[32m    from models.restaurant import Restaurant[m
+     [m
+     restaurants_objects = [[m
+         Restaurant(id=1, name='Restaurante Sabor Divino', latitude=-23.5505, longitude=-46.6333, [m
+[1mdiff --git a/backend/src/algorithms/sorting_algorithms.py b/backend/src/algorithms/sorting_algorithms.py[m
+[1mindex 970ed9d..c4f1dc1 100644[m
+[1m--- a/backend/src/algorithms/sorting_algorithms.py[m
+[1m+++ b/backend/src/algorithms/sorting_algorithms.py[m
+[36m@@ -64,7 +64,7 @@[m [mif __name__ == '__main__':[m
+     print("=== TESTE COM OBJETOS RESTAURANT ===")[m
+     [m
+     # Exemplo com objetos Restaurant (modelo real do projeto)[m
+[31m-    from ..models.restaurant import Restaurant[m
+[32m+[m[32m    from models.restaurant import Restaurant[m
+     [m
+     restaurants_objects = [[m
+         Restaurant(id=1, name='Restaurante A', latitude=-23.5505, longitude=-46.6333, [m
+[1mdiff --git a/backend/src/cache/__init__.py b/backend/src/cache/__init__.py[m
+[1mindex e69de29..b28b04f 100644[m
+[1m--- a/backend/src/cache/__init__.py[m
+[1m+++ b/backend/src/cache/__init__.py[m
+[36m@@ -0,0 +1,3 @@[m
+[32m+[m
+[32m+[m
+[32m+[m
+[1mdiff --git a/backend/src/location/__init__.py b/backend/src/location/__init__.py[m
+[1mindex e69de29..b28b04f 100644[m
+[1m--- a/backend/src/location/__init__.py[m
+[1m+++ b/backend/src/location/__init__.py[m
+[36m@@ -0,0 +1,3 @@[m
+[32m+[m
+[32m+[m
+[32m+[m
+[1mdiff --git a/backend/src/models/restaurant.py b/backend/src/models/restaurant.py[m
+[1mindex 09c68ac..e6d1fcd 100644[m
+[1m--- a/backend/src/models/restaurant.py[m
+[1m+++ b/backend/src/models/restaurant.py[m
+[36m@@ -129,7 +129,39 @@[m [mclass Restaurant:[m
+             return True[m
+         [m
+         restaurant_cuisine = self.cuisine_type.lower()[m
+[31m-        return any(cuisine.lower() in restaurant_cuisine for cuisine in cuisine_types)[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Verificar se algum dos tipos de culinária desejados está presente no restaurante[m
+[32m+[m[32m        for cuisine in cuisine_types:[m
+[32m+[m[32m            cuisine_lower = cuisine.lower()[m
+[32m+[m[41m            [m
+[32m+[m[32m            # Verificar se o tipo de culinária está contido no nome do tipo do restaurante[m
+[32m+[m[32m            if cuisine_lower in restaurant_cuisine:[m
+[32m+[m[32m                return True[m
+[32m+[m[41m            [m
+[32m+[m[32m            # Verificar correspondências específicas[m
+[32m+[m[32m            cuisine_matches = {[m
+[32m+[m[32m                'japonesa': ['japonesa', 'japonês', 'japanese', 'sushi', 'temaki', 'sashimi', 'yaki', 'izakaya', 'oriental'],[m
+[32m+[m[32m                'italiana': ['italiana', 'italian', 'pizza', 'pasta'],[m
+[32m+[m[32m                'chinesa': ['chinesa', 'chinese', 'dim sum'],[m
+[32m+[m[32m                'brasileira': ['brasileira', 'brazilian', 'brasileiro', 'pastel', 'pastelaria', 'churrasco', 'churrascaria', 'feijoada', 'nordestina', 'nordestino', 'regional'],[m
+[32m+[m[32m                'mexicana': ['mexicana', 'mexican', 'taco', 'burrito'],[m
+[32m+[m[32m                'indiana': ['indiana', 'indian', 'curry'],[m
+[32m+[m[32m                'árabe': ['árabe', 'arabic', 'kebab', 'shawarma'],[m
+[32m+[m[32m                'mediterrânea': ['mediterrânea', 'mediterranean', 'hummus'],[m
+[32m+[m[32m                'frutos do mar': ['frutos do mar', 'seafood', 'peixe', 'camarão', 'ceviche'],[m
+[32m+[m[32m                'vegana': ['vegana', 'vegan', 'vegetariana', 'vegetarian'],[m
+[32m+[m[32m                'fast food': ['fast food', 'fast-food', 'hamburguer'],[m
+[32m+[m[32m                'padaria': ['padaria', 'bakery', 'pão'],[m
+[32m+[m[32m                'café': ['café', 'cafe', 'coffee'],[m
+[32m+[m[32m                'bar': ['bar', 'pub', 'cervejaria'][m
+[32m+[m[32m            }[m
+[32m+[m[41m            [m
+[32m+[m[32m            if cuisine_lower in cuisine_matches:[m
+[32m+[m[32m                for match_term in cuisine_matches[cuisine_lower]:[m
+[32m+[m[32m                    if match_term in restaurant_cuisine:[m
+[32m+[m[32m                        return True[m
+[32m+[m[41m        [m
+[32m+[m[32m        return False[m
+     [m
+     def matches_price_filter(self, price_range: str) -> bool:[m
+         """[m
+[36m@@ -159,72 +191,7 @@[m [mclass Restaurant:[m
+         return self.rating >= min_rating[m
+ [m
+ [m
+[31m-# Dados mockados de restaurantes para desenvolvimento[m
+[31m-MOCK_RESTAURANTS = [[m
+[31m-    Restaurant([m
+[31m-        id=1,[m
+[31m-        name="Bodega do Sertão",[m
+[31m-        latitude=-9.65333,[m
+[31m-        longitude=-35.70920,[m
+[31m-        rating=4.6,[m
+[31m-        cuisine_type="Nordestina / self-service",[m
+[31m-        price_range="medio",[m
+[31m-        address="Av. Dr. Júlio Marques Luz, 62 — Jatiúca, Maceió-AL",[m
+[31m-        phone="(82) 3327-4446",[m
+[31m-        opening_hours="Seg-Dom: 11h30-16h, 17h30-22h",[m
+[31m-        features=["decoração temática", "buffet self-service", "culinária regional"][m
+[31m-    ),[m
+[31m-    Restaurant([m
+[31m-        id=2,[m
+[31m-        name="Janga Praia",[m
+[31m-        latitude=-9.66328,[m
+[31m-        longitude=-35.70562,[m
+[31m-        rating=4.8,[m
+[31m-        cuisine_type="Brasileira, Frutos do mar",[m
+[31m-        price_range="medio-alto",[m
+[31m-        address="Av. Silvio Carlos Viana, 1731 — Ponta Verde, Maceió-AL",[m
+[31m-        phone="+55 82 98233-1030",[m
+[31m-        website="https://linktr.ee/PedidosJanga",[m
+[31m-        opening_hours="Dom-Qua: 12h-16h e 18h30-23h; Qui-Sáb: até 00h",[m
+[31m-        features=["beira-mar", "frutos do mar", "opções vegetarianas/sem glúten", "entrega"][m
+[31m-    ),[m
+[31m-    Restaurant([m
+[31m-        id=3,[m
+[31m-        name="Maria Antonieta",[m
+[31m-        latitude=-9.65090,[m
+[31m-        longitude=-35.70102,[m
+[31m-        rating=4.7,[m
+[31m-        cuisine_type="Italiana sofisticada",[m
+[31m-        price_range="alto",[m
+[31m-        address="Av. Dr. Antônio Gomes de Barros, 150 — Jatiúca, Maceió-AL",[m
+[31m-        phone="(82) 3202-8828",[m
+[31m-        website="https://mariaantonieta-al.com.br/",[m
+[31m-        features=["ambiente elegante", "pratos elaborados (raviolone)", "ideal para jantar especial"][m
+[31m-    ),[m
+[31m-    Restaurant([m
+[31m-        id=4,[m
+[31m-        name="Divina Gula",[m
+[31m-        latitude=-9.64632,[m
+[31m-        longitude=-35.70491,[m
+[31m-        rating=4.6,[m
+[31m-        cuisine_type="Mineira / Regional",[m
+[31m-        price_range="alto",[m
+[31m-        address="Av. Paulo Brandão Nogueira, 85 - Jatiúca, Maceió-AL",[m
+[31m-        phone="(82) 3235-1016",[m
+[31m-        features=["ambiente acolhedor", "ingredientes frescos", "sofisticado"][m
+[31m-    ),[m
+[31m-    Restaurant([m
+[31m-        id=5,[m
+[31m-        name="Cheiro da Terra",[m
+[31m-        latitude=-9.671455999415862,[m
+[31m-        longitude=-35.71602995613105,[m
+[31m-        rating=4.6,[m
+[31m-        cuisine_type="Nordestina / Buffet",[m
+[31m-        price_range="medio",[m
+[31m-        address="Av. Dr. Antônio Gouveia, 487 - Pajuçara, Maceió-AL",[m
+[31m-        features=["buffet", "ambiente rústico", "música ao vivo", "lojinha"][m
+[31m-    )[m
+[31m-][m
+[32m+[m
+ [m
+ [m
+ # funcoes utilitarias para trabalhar com listas de restaurantes[m
+[1mdiff --git a/backend/src/nlp/parser.py b/backend/src/nlp/parser.py[m
+[1mindex 792d292..5dd4e10 100644[m
+[1m--- a/backend/src/nlp/parser.py[m
+[1m+++ b/backend/src/nlp/parser.py[m
+[36m@@ -179,6 +179,119 @@[m [mclass QueryParser:[m
+         """[m
+         return bool(self.open_now_pattern.search(text))[m
+     [m
+[32m+[m[32m    def _find_sort_preference(self, text: str) -> str:[m
+[32m+[m[32m        """[m
+[32m+[m[32m        extrai preferencia de ordenacao da consulta[m
+[32m+[m[41m        [m
+[32m+[m[32m        Args:[m
+[32m+[m[32m            text: texto da consulta[m
+[32m+[m[41m            [m
+[32m+[m[32m        Returns:[m
+[32m+[m[32m            preferencia de ordenacao: 'distance', 'rating', 'price_low', 'price_high', 'default'[m
+[32m+[m[32m        """[m
+[32m+[m[32m        text_lower = text.lower()[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Padrões para ordenação por distância[m
+[32m+[m[32m        distance_patterns = ['perto', 'proximo', 'perto de mim', 'proximo de mim', 'na minha area', 'na minha região', 'mais perto'][m
+[32m+[m[41m        [m
+[32m+[m[32m        # Padrões para ordenação por nota[m
+[32m+[m[32m        rating_patterns = ['melhor', 'melhores', 'bom', 'bons', 'ótimo', 'ótimos', 'excelente', 'top', 'recomendado'][m
+[32m+[m[41m        [m
+[32m+[m[32m        # Padrões para ordenação por preço (barato)[m
+[32m+[m[32m        price_low_patterns = ['barato', 'baratos', 'econômico', 'econômicos', 'acessível', 'acessíveis', 'preço baixo', 'preços baixos'][m
+[32m+[m[41m        [m
+[32m+[m[32m        # Padrões para ordenação por preço (caro)[m
+[32m+[m[32m        price_high_patterns = ['caro', 'caros', 'luxuoso', 'luxuosos', 'premium', 'sofisticado', 'gourmet'][m
+[32m+[m[41m        [m
+[32m+[m[32m        # Verificar padrões[m
+[32m+[m[32m        for pattern in distance_patterns:[m
+[32m+[m[32m            if pattern in text_lower:[m
+[32m+[m[32m                return 'distance'[m
+[32m+[m[41m        [m
+[32m+[m[32m        for pattern in rating_patterns:[m
+[32m+[m[32m            if pattern in text_lower:[m
+[32m+[m[32m                return 'rating'[m
+[32m+[m[41m        [m
+[32m+[m[32m        for pattern in price_low_patterns:[m
+[32m+[m[32m            if pattern in text_lower:[m
+[32m+[m[32m                return 'price_low'[m
+[32m+[m[41m        [m
+[32m+[m[32m        for pattern in price_high_patterns:[m
+[32m+[m[32m            if pattern in text_lower:[m
+[32m+[m[32m                return 'price_high'[m
+[32m+[m[41m        [m
+[32m+[m[32m        return 'default'[m
+[32m+[m[41m    [m
+[32m+[m[32m    def generate_dynamic_title(self, text: str) -> str:[m
+[32m+[m[32m        """[m
+[32m+[m[32m        gera título dinâmico baseado na consulta do usuário[m
+[32m+[m[41m        [m
+[32m+[m[32m        Args:[m
+[32m+[m[32m            text: consulta do usuário[m
+[32m+[m[41m            [m
+[32m+[m[32m        Returns:[m
+[32m+[m[32m            título dinâmico gerado[m
+[32m+[m[32m        """[m
+[32m+[m[32m        if not text or not text.strip():[m
+[32m+[m[32m            return "Restaurantes Recomendados"[m
+[32m+[m[41m        [m
+[32m+[m[32m        text_lower = text.lower()[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Mapeamento de tipos de culinária para títulos[m
+[32m+[m[32m        cuisine_titles = {[m
+[32m+[m[32m            "japonesa": "Japoneses",[m
+[32m+[m[32m            "brasileira": "Brasileiros",[m[41m [m
+[32m+[m[32m            "italiana": "Italianos",[m
+[32m+[m[32m            "chinesa": "Chineses",[m
+[32m+[m[32m            "mexicana": "Mexicanos",[m
+[32m+[m[32m            "indiana": "Indianos",[m
+[32m+[m[32m            "árabe": "Árabes",[m
+[32m+[m[32m            "portuguesa": "Portugueses",[m
+[32m+[m[32m            "peruana": "Peruanos",[m
+[32m+[m[32m            "mediterrânea": "Mediterrâneos",[m
+[32m+[m[32m            "francesa": "Franceses",[m
+[32m+[m[32m            "frutos do mar": "Frutos do Mar",[m
+[32m+[m[32m            "vegana": "Veganos",[m
+[32m+[m[32m            "saudável": "Saudáveis",[m
+[32m+[m[32m            "fast food": "Fast Food",[m
+[32m+[m[32m            "padaria": "Padarias",[m
+[32m+[m[32m            "café": "Cafés",[m
+[32m+[m[32m            "bar": "Bares",[m
+[32m+[m[32m            "nordestina": "Nordestinos"[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Mapeamento de preferências de ordenação para títulos[m
+[32m+[m[32m        sort_titles = {[m
+[32m+[m[32m            "distance": "mais próximos",[m
+[32m+[m[32m            "rating": "melhores",[m
+[32m+[m[32m            "price_low": "mais baratos",[m
+[32m+[m[32m            "price_high": "mais caros"[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Encontrar tipo de culinária[m
+[32m+[m[32m        cuisine_type = None[m
+[32m+[m[32m        for cuisine, synonyms in self.cuisine_synonyms.items():[m
+[32m+[m[32m            for synonym in synonyms:[m
+[32m+[m[32m                if synonym.lower() in text_lower:[m
+[32m+[m[32m                    cuisine_type = cuisine_titles.get(cuisine, cuisine.capitalize())[m
+[32m+[m[32m                    break[m
+[32m+[m[32m            if cuisine_type:[m
+[32m+[m[32m                break[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Encontrar preferência de ordenação[m
+[32m+[m[32m        sort_preference = self._find_sort_preference(text)[m
+[32m+[m[32m        sort_title = sort_titles.get(sort_preference, None)[m
+[32m+[m[41m        [m
+[32m+[m[32m        # Gerar título baseado nas informações encontradas[m
+[32m+[m[32m        if cuisine_type and sort_title:[m
+[32m+[m[32m            return f"Restaurantes {cuisine_type} {sort_title}"[m
+[32m+[m[32m        elif cuisine_type:[m
+[32m+[m[32m     
