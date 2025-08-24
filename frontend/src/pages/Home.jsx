@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
+import ApiTest from '../components/ApiTest'
 
 const Home = () => {
   const [query, setQuery] = useState('')
@@ -110,6 +111,13 @@ const Home = () => {
             {!location && (
               <div className="w-full bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 text-sm">
                 <p>⚠️ Permitindo acesso à localização para melhores resultados...</p>
+              </div>
+            )}
+            
+            {/* Componente de teste da API (apenas em desenvolvimento) */}
+            {import.meta.env.DEV && (
+              <div className="w-full mt-4">
+                <ApiTest />
               </div>
             )}
           </div>

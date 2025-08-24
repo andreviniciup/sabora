@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sabora-backend.onrender.com'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,11 +13,12 @@ const api = axios.create({
 // Interceptor para request
 api.interceptors.request.use(
   (config) => {
-    console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`)
+    console.log(`🌐 Making ${config.method?.toUpperCase()} request to: ${API_BASE_URL}${config.url}`)
+    console.log(`📤 Request data:`, config.data)
     return config
   },
   (error) => {
-    console.error('Request error:', error)
+    console.error('❌ Request error:', error)
     return Promise.reject(error)
   }
 )
@@ -25,11 +26,15 @@ api.interceptors.request.use(
 // Interceptor para response
 api.interceptors.response.use(
   (response) => {
-    console.log(`Response from ${response.config.url}:`, response.status)
+    console.log(`✅ Response from ${response.config.url}:`, response.status)
+    console.log(`📥 Response data:`, response.data)
     return response
   },
   (error) => {
-    console.error('Response error:', error.response?.status, error.message)
+    console.error('❌ Response error:', error.response?.status, error.message)
+    if (error.response?.data) {
+      console.error('📄 Error details:', error.response.data)
+    }
     return Promise.reject(error)
   }
 )
@@ -39,10 +44,43 @@ export const restaurantAPI = {
   // Verificar saúde da API
   healthCheck: async () => {
     try {
+      console.log('🏥 Health check iniciado...')
       const response = await api.get('/api/health')
+      console.log('✅ Health check bem-sucedido:', response.data)
       return response.data
     } catch (error) {
+      console.error('❌ Health check falhou:', error.message)
       throw new Error(`Health check failed: ${error.message}`)
+    }
+  },
+
+  // Testar conectividade com o backend
+  testConnection: async () => {
+    try {
+      console.log('🔗 Testando conectividade com o backend...')
+      console.log('📍 URL da API:', API_BASE_URL)
+      
+      const healthResponse = await restaurantAPI.healthCheck()
+      const configResponse = await api.get('/api/config')
+      
+      console.log('✅ Conectividade OK:', {
+        health: healthResponse,
+        config: configResponse.data
+      })
+      
+      return {
+        success: true,
+        health: healthResponse,
+        config: configResponse.data,
+        apiUrl: API_BASE_URL
+      }
+    } catch (error) {
+      console.error('❌ Falha na conectividade:', error)
+      return {
+        success: false,
+        error: error.message,
+        apiUrl: API_BASE_URL
+      }
     }
   },
 
