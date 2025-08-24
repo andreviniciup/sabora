@@ -13,7 +13,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.geo_utils import calculate_distance, is_within_radius, format_distance, calculate_distance_from_dict
 from algorithms.sorting_algorithms import bubble_sort
 from algorithms.search_algorithms import binary_search
-from models.restaurant import Restaurant, restaurants_to_dicts, dicts_to_restaurants
+from models.restaurant import Restaurant, restaurants_to_dicts
+from services.google_maps_service import google_maps_service
 
 
 class RecommendationEngine:
@@ -46,6 +47,25 @@ class RecommendationEngine:
             'latitude': latitude,
             'longitude': longitude
         }
+    
+    def get_restaurants_from_api(self, latitude: float, longitude: float, keyword: str = None) -> List[Restaurant]:
+        """
+        obtem restaurantes da api do google maps
+        
+        Args:
+            latitude: latitude do usuario
+            longitude: longitude do usuario
+            keyword: palavra-chave para busca
+            
+        Returns:
+            lista de restaurantes da api
+        """
+        return google_maps_service.search_nearby_restaurants(
+            latitude=latitude,
+            longitude=longitude,
+            radius_meters=5000,  # 5km
+            keyword=keyword
+        )
     
     def calculate_distances(self) -> List[Restaurant]:
         """
@@ -163,25 +183,31 @@ class RecommendationEngine:
         # passo 1: definir localizacao do usuario
         self.set_user_location(user_latitude, user_longitude)
         
-        # passo 2: calcular distancias
+        # passo 2: obter restaurantes da api (ou mockados se nao houver api key)
+        self.restaurants = self.get_restaurants_from_api(user_latitude, user_longitude)
+        
+        if not self.restaurants:
+            return []
+        
+        # passo 3: calcular distancias
         restaurants_with_distance = self.calculate_distances()
         
         if not restaurants_with_distance:
             return []
         
-        # passo 3: ordenar por distancia (bubble sort)
+        # passo 4: ordenar por distancia (bubble sort)
         restaurants_by_distance = self.bubble_sort_by_distance(restaurants_with_distance)
         
-        # passo 4: filtrar por raio (busca binaria)
+        # passo 5: filtrar por raio (busca binaria)
         restaurants_in_radius = self.binary_search_radius_filter(restaurants_by_distance, radius_km)
         
         if not restaurants_in_radius:
             return []
         
-        # passo 5: ordenar por nota (bubble sort)
+        # passo 6: ordenar por nota (bubble sort)
         restaurants_by_rating = self.bubble_sort_by_rating(restaurants_in_radius)
         
-        # passo 6: retornar top resultados
+        # passo 7: retornar top resultados
         top_recommendations = restaurants_by_rating[:max_results]
         
         # adicionar informacoes extras

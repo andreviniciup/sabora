@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.nlp.parser import QueryParser
 from src.processors.recommendation_engine import RecommendationEngine
-from src.models.restaurant import Restaurant, restaurants_to_dicts, MOCK_RESTAURANTS
+from src.models.restaurant import Restaurant, restaurants_to_dicts
 
 # configuracao do app
 app = Flask(__name__)
@@ -24,9 +24,6 @@ CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://loc
 # instancias globais
 query_parser = QueryParser()
 recommendation_engine = RecommendationEngine()
-
-# inicializar engine com dados mockados
-recommendation_engine.set_restaurants(MOCK_RESTAURANTS)
 
 
 @app.route('/')
