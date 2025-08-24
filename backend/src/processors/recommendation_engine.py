@@ -7,15 +7,12 @@ from typing import List, Dict, Any, Optional, Tuple
 import sys
 import os
 
-# adicionar o diretorio src ao path para imports relativos
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from utils.geo_utils import calculate_distance, is_within_radius, format_distance, calculate_distance_from_dict
-from algorithms.sorting_algorithms import bubble_sort
-from algorithms.search_algorithms import binary_search
-from models.restaurant import Restaurant, restaurants_to_dicts
-from services.google_maps_service import google_maps_service
-from services.cache_service import cache_service
+from src.utils.geo_utils import calculate_distance, is_within_radius, format_distance, calculate_distance_from_dict
+from src.algorithms.sorting_algorithms import bubble_sort
+from src.algorithms.search_algorithms import binary_search
+from src.models.restaurant import Restaurant, restaurants_to_dicts
+from src.services.google_maps_service import google_maps_service
+from src.services.cache_service import cache_service
 
 
 class RecommendationEngine:

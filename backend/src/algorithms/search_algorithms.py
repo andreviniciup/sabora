@@ -52,7 +52,7 @@ if __name__ == '__main__':
     ]
     
     # Exemplo com objetos Restaurant (modelo real do projeto)
-    from ..models.restaurant import Restaurant
+    from src.models.restaurant import Restaurant
     
     restaurants_objects = [
         Restaurant(id=1, name='Restaurante Sabor Divino', latitude=-23.5505, longitude=-46.6333, 

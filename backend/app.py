@@ -7,6 +7,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sys
 import os
+from dotenv import load_dotenv
+
+# carregar variáveis de ambiente do arquivo .env
+load_dotenv()
 
 # adicionar o diretorio src ao path para imports
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
