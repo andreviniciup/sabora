@@ -15,6 +15,7 @@ from src.nlp.parser import QueryParser
 from src.nlp.synonyms import CULINARIA, PRECO, DISTANCIA, AVALIACAO
 from src.processors.recommendation_engine import RecommendationEngine
 from src.models.restaurant import Restaurant, restaurants_to_dicts
+from src.services.cache_service import cache_service
 
 # configuracao do app
 app = Flask(__name__)
@@ -116,15 +117,13 @@ def get_recommendations():
         # passo 1: extrair filtros do texto usando parser
         filters = query_parser.parse_query(text)
         
-        # passo 2: obter recomendacoes usando engine
-        recommendations = recommendation_engine.get_recommendations_with_filters(
+        # passo 2: obter recomendacoes usando engine com cache
+        recommendations = recommendation_engine.get_recommendations_with_cache(
             latitude,
             longitude,
-            filters.get('radius_km', 2.0),
-            5,
-            filters.get('min_rating', 0.0),
-            filters.get('cuisine_types'),
-            filters.get('price_range')
+            text,
+            filters,
+            use_cache=True
         )
         
         # passo 3: converter para dicionarios para json
@@ -147,6 +146,96 @@ def get_recommendations():
     except Exception as e:
         return jsonify({
             'error': 'erro interno do servidor',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/cache/stats', methods=['GET'])
+def get_cache_stats():
+    """
+    endpoint para obter estatísticas do cache
+    """
+    try:
+        stats = cache_service.get_stats()
+        return jsonify({
+            'status': 'success',
+            'data': stats
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'error': 'erro ao obter estatísticas do cache',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/cache/clear', methods=['POST'])
+def clear_cache():
+    """
+    endpoint para limpar todo o cache
+    """
+    try:
+        success = cache_service.clear_all()
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': 'Cache limpo com sucesso'
+            }), 200
+        else:
+            return jsonify({
+                'error': 'erro ao limpar cache',
+                'message': 'Não foi possível limpar o cache'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'error': 'erro ao limpar cache',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/cache/invalidate', methods=['POST'])
+def invalidate_cache_by_location():
+    """
+    endpoint para invalidar cache por localização
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'error': 'dados não fornecidos',
+                'message': 'envie latitude e longitude no corpo da requisição'
+            }), 400
+        
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        radius_km = data.get('radius_km', 5.0)
+        
+        if latitude is None or longitude is None:
+            return jsonify({
+                'error': 'campos obrigatórios faltando',
+                'message': 'latitude e longitude são obrigatórios'
+            }), 400
+        
+        invalidated_count = cache_service.invalidate_by_location(
+            float(latitude), 
+            float(longitude), 
+            float(radius_km)
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Cache invalidado com sucesso',
+            'data': {
+                'invalidated_keys': invalidated_count,
+                'location': {
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    'radius_km': radius_km
+                }
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'error': 'erro ao invalidar cache',
             'message': str(e)
         }), 500
 

@@ -22,6 +22,20 @@ cd ../frontend
 npm install
 ```
 
+### 1.1 Configurar Redis (Opcional - para Cache)
+
+```bash
+# Opção 1: Instalar Redis localmente
+sudo apt-get install redis-server  # Ubuntu/Debian
+brew install redis                 # macOS
+
+# Opção 2: Usar Docker
+docker run -d -p 6379:6379 redis:alpine
+
+# Opção 3: Redis Cloud (gratuito)
+# https://redis.com/try-free/
+```
+
 ### 2. Configure a Google Maps API
 
 #### 2.1 Obter Chave da API
@@ -55,6 +69,7 @@ PORT=5000
 ```bash
 # No diretório backend
 python test_api.py
+python test_cache.py  # Teste do sistema de cache
 ```
 
 ### 4. Executar Aplicação
@@ -93,6 +108,51 @@ python test_api.py
 - ⚠️ Dados mockados (funciona para desenvolvimento)
 - ⚠️ Restaurantes fixos de Maceió-AL
 - ⚠️ Informações estáticas
+
+## 🚀 Sistema de Cache
+
+O Sabora inclui um sistema de cache inteligente que melhora significativamente a performance:
+
+### 📊 Benefícios do Cache
+- **Performance**: Respostas até 10x mais rápidas
+- **Redução de custos**: Menos chamadas para a Google Maps API
+- **Experiência do usuário**: Carregamento instantâneo para consultas repetidas
+- **Fallback**: Funciona mesmo sem Redis (cache em memória)
+
+### 🔧 Configuração do Cache
+
+#### Com Redis (Recomendado)
+```bash
+# Configurar URL do Redis no .env
+REDIS_URL=redis://localhost:6379/0
+CACHE_ENABLED=true
+CACHE_TTL_SECONDS=3600
+```
+
+#### Sem Redis (Fallback)
+O sistema automaticamente usa cache em memória se o Redis não estiver disponível.
+
+### 📈 Monitoramento do Cache
+
+#### Endpoints de Gerenciamento
+```bash
+# Ver estatísticas do cache
+curl http://localhost:5000/api/cache/stats
+
+# Limpar todo o cache
+curl -X POST http://localhost:5000/api/cache/clear
+
+# Invalidar cache por localização
+curl -X POST http://localhost:5000/api/cache/invalidate \
+  -H "Content-Type: application/json" \
+  -d '{"latitude": -23.5505, "longitude": -46.6333, "radius_km": 5.0}'
+```
+
+#### Teste de Performance
+```bash
+cd backend
+python test_cache.py
+```
 
 ## 🐛 Solução de Problemas
 

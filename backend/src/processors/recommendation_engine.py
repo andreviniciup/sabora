@@ -15,6 +15,7 @@ from algorithms.sorting_algorithms import bubble_sort
 from algorithms.search_algorithms import binary_search
 from models.restaurant import Restaurant, restaurants_to_dicts
 from services.google_maps_service import google_maps_service
+from services.cache_service import cache_service
 
 
 class RecommendationEngine:
@@ -290,6 +291,83 @@ class RecommendationEngine:
                 break
         
         return filtered_recommendations
+
+    def get_recommendations_with_cache(
+        self,
+        user_latitude: float,
+        user_longitude: float,
+        query: str,
+        filters: Dict[str, Any] = None,
+        use_cache: bool = True
+    ) -> List[Restaurant]:
+        """
+        Obtém recomendações com cache
+        
+        Args:
+            user_latitude: latitude do usuário
+            user_longitude: longitude do usuário
+            query: texto da consulta original
+            filters: filtros aplicados
+            use_cache: se deve usar cache
+            
+        Returns:
+            lista de restaurantes recomendados
+        """
+        if use_cache:
+            # Tentar buscar do cache primeiro
+            cached_restaurants = cache_service.get(user_latitude, user_longitude, query, filters)
+            if cached_restaurants:
+                # Converter de volta para objetos Restaurant
+                restaurants = []
+                for restaurant_dict in cached_restaurants:
+                    restaurant = Restaurant(
+                        id=restaurant_dict.get('id'),
+                        name=restaurant_dict.get('name'),
+                        latitude=restaurant_dict.get('latitude'),
+                        longitude=restaurant_dict.get('longitude'),
+                        rating=restaurant_dict.get('rating'),
+                        cuisine_type=restaurant_dict.get('cuisine_type'),
+                        price_range=restaurant_dict.get('price_range'),
+                        address=restaurant_dict.get('address'),
+                        phone=restaurant_dict.get('phone'),
+                        website=restaurant_dict.get('website'),
+                        opening_hours=restaurant_dict.get('opening_hours'),
+                        features=restaurant_dict.get('features', [])
+                    )
+                    # Adicionar campos calculados
+                    if 'distance_km' in restaurant_dict:
+                        restaurant.distance_km = restaurant_dict['distance_km']
+                    if 'distance_formatted' in restaurant_dict:
+                        restaurant.distance_formatted = restaurant_dict['distance_formatted']
+                    
+                    restaurants.append(restaurant)
+                
+                return restaurants
+        
+        # Se não encontrou no cache, gerar recomendações normalmente
+        recommendations = self.get_recommendations_with_filters(
+            user_latitude,
+            user_longitude,
+            filters.get('radius_km', 2.0) if filters else 2.0,
+            5,
+            filters.get('min_rating', 0.0) if filters else 0.0,
+            filters.get('cuisine_types') if filters else None,
+            filters.get('price_range') if filters else None
+        )
+        
+        # Armazenar no cache
+        if use_cache and recommendations:
+            recommendations_dict = restaurants_to_dicts(recommendations)
+            cache_service.set(
+                user_latitude, 
+                user_longitude, 
+                query, 
+                filters, 
+                recommendations_dict,
+                ttl_seconds=3600  # 1 hora
+            )
+        
+        return recommendations
 
 
 # funcao de conveniencia para uso direto
