@@ -179,6 +179,119 @@ class QueryParser:
         """
         return bool(self.open_now_pattern.search(text))
     
+    def _find_sort_preference(self, text: str) -> str:
+        """
+        extrai preferencia de ordenacao da consulta
+        
+        Args:
+            text: texto da consulta
+            
+        Returns:
+            preferencia de ordenacao: 'distance', 'rating', 'price_low', 'price_high', 'default'
+        """
+        text_lower = text.lower()
+        
+        # Padrões para ordenação por distância
+        distance_patterns = ['perto', 'proximo', 'perto de mim', 'proximo de mim', 'na minha area', 'na minha região', 'mais perto']
+        
+        # Padrões para ordenação por nota
+        rating_patterns = ['melhor', 'melhores', 'bom', 'bons', 'ótimo', 'ótimos', 'excelente', 'top', 'recomendado']
+        
+        # Padrões para ordenação por preço (barato)
+        price_low_patterns = ['barato', 'baratos', 'econômico', 'econômicos', 'acessível', 'acessíveis', 'preço baixo', 'preços baixos']
+        
+        # Padrões para ordenação por preço (caro)
+        price_high_patterns = ['caro', 'caros', 'luxuoso', 'luxuosos', 'premium', 'sofisticado', 'gourmet']
+        
+        # Verificar padrões
+        for pattern in distance_patterns:
+            if pattern in text_lower:
+                return 'distance'
+        
+        for pattern in rating_patterns:
+            if pattern in text_lower:
+                return 'rating'
+        
+        for pattern in price_low_patterns:
+            if pattern in text_lower:
+                return 'price_low'
+        
+        for pattern in price_high_patterns:
+            if pattern in text_lower:
+                return 'price_high'
+        
+        return 'default'
+    
+    def generate_dynamic_title(self, text: str) -> str:
+        """
+        gera título dinâmico baseado na consulta do usuário
+        
+        Args:
+            text: consulta do usuário
+            
+        Returns:
+            título dinâmico gerado
+        """
+        if not text or not text.strip():
+            return "Restaurantes Recomendados"
+        
+        text_lower = text.lower()
+        
+        # Mapeamento de tipos de culinária para títulos
+        cuisine_titles = {
+            "japonesa": "Japoneses",
+            "brasileira": "Brasileiros", 
+            "italiana": "Italianos",
+            "chinesa": "Chineses",
+            "mexicana": "Mexicanos",
+            "indiana": "Indianos",
+            "árabe": "Árabes",
+            "portuguesa": "Portugueses",
+            "peruana": "Peruanos",
+            "mediterrânea": "Mediterrâneos",
+            "francesa": "Franceses",
+            "frutos do mar": "Frutos do Mar",
+            "vegana": "Veganos",
+            "saudável": "Saudáveis",
+            "fast food": "Fast Food",
+            "padaria": "Padarias",
+            "café": "Cafés",
+            "bar": "Bares",
+            "nordestina": "Nordestinos"
+        }
+        
+        # Mapeamento de preferências de ordenação para títulos
+        sort_titles = {
+            "distance": "mais próximos",
+            "rating": "melhores",
+            "price_low": "mais baratos",
+            "price_high": "mais caros"
+        }
+        
+        # Encontrar tipo de culinária
+        cuisine_type = None
+        for cuisine, synonyms in self.cuisine_synonyms.items():
+            for synonym in synonyms:
+                if synonym.lower() in text_lower:
+                    cuisine_type = cuisine_titles.get(cuisine, cuisine.capitalize())
+                    break
+            if cuisine_type:
+                break
+        
+        # Encontrar preferência de ordenação
+        sort_preference = self._find_sort_preference(text)
+        sort_title = sort_titles.get(sort_preference, None)
+        
+        # Gerar título baseado nas informações encontradas
+        if cuisine_type and sort_title:
+            return f"Restaurantes {cuisine_type} {sort_title}"
+        elif cuisine_type:
+            return f"Restaurantes {cuisine_type}"
+        elif sort_title:
+            return f"Restaurantes {sort_title}"
+        else:
+            return "Restaurantes Encontrados"
+    
     def parse_query(self, text: str) -> Dict[str, Any]:
         """
         converte consulta em portugues natural para filtros estruturados
@@ -201,6 +314,7 @@ class QueryParser:
         distance = self._find_distance(text)
         min_rating = self._find_min_rating(text)
         open_now = self._find_open_now(text)
+        sort_preference = self._find_sort_preference(text)
         
         # construir resultado
         result = {}
@@ -219,6 +333,9 @@ class QueryParser:
         
         if open_now:
             result['open_now'] = open_now
+        
+        # Adicionar preferência de ordenação
+        result['sort_preference'] = sort_preference
         
         return result
 

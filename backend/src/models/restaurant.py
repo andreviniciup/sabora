@@ -129,7 +129,39 @@ class Restaurant:
             return True
         
         restaurant_cuisine = self.cuisine_type.lower()
-        return any(cuisine.lower() in restaurant_cuisine for cuisine in cuisine_types)
+        
+        # Verificar se algum dos tipos de culinária desejados está presente no restaurante
+        for cuisine in cuisine_types:
+            cuisine_lower = cuisine.lower()
+            
+            # Verificar se o tipo de culinária está contido no nome do tipo do restaurante
+            if cuisine_lower in restaurant_cuisine:
+                return True
+            
+            # Verificar correspondências específicas
+            cuisine_matches = {
+                'japonesa': ['japonesa', 'japonês', 'japanese', 'sushi', 'temaki', 'sashimi', 'yaki', 'izakaya', 'oriental'],
+                'italiana': ['italiana', 'italian', 'pizza', 'pasta'],
+                'chinesa': ['chinesa', 'chinese', 'dim sum'],
+                'brasileira': ['brasileira', 'brazilian', 'brasileiro', 'pastel', 'pastelaria', 'churrasco', 'churrascaria', 'feijoada', 'nordestina', 'nordestino', 'regional'],
+                'mexicana': ['mexicana', 'mexican', 'taco', 'burrito'],
+                'indiana': ['indiana', 'indian', 'curry'],
+                'árabe': ['árabe', 'arabic', 'kebab', 'shawarma'],
+                'mediterrânea': ['mediterrânea', 'mediterranean', 'hummus'],
+                'frutos do mar': ['frutos do mar', 'seafood', 'peixe', 'camarão', 'ceviche'],
+                'vegana': ['vegana', 'vegan', 'vegetariana', 'vegetarian'],
+                'fast food': ['fast food', 'fast-food', 'hamburguer'],
+                'padaria': ['padaria', 'bakery', 'pão'],
+                'café': ['café', 'cafe', 'coffee'],
+                'bar': ['bar', 'pub', 'cervejaria']
+            }
+            
+            if cuisine_lower in cuisine_matches:
+                for match_term in cuisine_matches[cuisine_lower]:
+                    if match_term in restaurant_cuisine:
+                        return True
+        
+        return False
     
     def matches_price_filter(self, price_range: str) -> bool:
         """
@@ -159,72 +191,7 @@ class Restaurant:
         return self.rating >= min_rating
 
 
-# Dados mockados de restaurantes para desenvolvimento
-MOCK_RESTAURANTS = [
-    Restaurant(
-        id=1,
-        name="Bodega do Sertão",
-        latitude=-9.65333,
-        longitude=-35.70920,
-        rating=4.6,
-        cuisine_type="Nordestina / self-service",
-        price_range="medio",
-        address="Av. Dr. Júlio Marques Luz, 62 — Jatiúca, Maceió-AL",
-        phone="(82) 3327-4446",
-        opening_hours="Seg-Dom: 11h30-16h, 17h30-22h",
-        features=["decoração temática", "buffet self-service", "culinária regional"]
-    ),
-    Restaurant(
-        id=2,
-        name="Janga Praia",
-        latitude=-9.66328,
-        longitude=-35.70562,
-        rating=4.8,
-        cuisine_type="Brasileira, Frutos do mar",
-        price_range="medio-alto",
-        address="Av. Silvio Carlos Viana, 1731 — Ponta Verde, Maceió-AL",
-        phone="+55 82 98233-1030",
-        website="https://linktr.ee/PedidosJanga",
-        opening_hours="Dom-Qua: 12h-16h e 18h30-23h; Qui-Sáb: até 00h",
-        features=["beira-mar", "frutos do mar", "opções vegetarianas/sem glúten", "entrega"]
-    ),
-    Restaurant(
-        id=3,
-        name="Maria Antonieta",
-        latitude=-9.65090,
-        longitude=-35.70102,
-        rating=4.7,
-        cuisine_type="Italiana sofisticada",
-        price_range="alto",
-        address="Av. Dr. Antônio Gomes de Barros, 150 — Jatiúca, Maceió-AL",
-        phone="(82) 3202-8828",
-        website="https://mariaantonieta-al.com.br/",
-        features=["ambiente elegante", "pratos elaborados (raviolone)", "ideal para jantar especial"]
-    ),
-    Restaurant(
-        id=4,
-        name="Divina Gula",
-        latitude=-9.64632,
-        longitude=-35.70491,
-        rating=4.6,
-        cuisine_type="Mineira / Regional",
-        price_range="alto",
-        address="Av. Paulo Brandão Nogueira, 85 - Jatiúca, Maceió-AL",
-        phone="(82) 3235-1016",
-        features=["ambiente acolhedor", "ingredientes frescos", "sofisticado"]
-    ),
-    Restaurant(
-        id=5,
-        name="Cheiro da Terra",
-        latitude=-9.671455999415862,
-        longitude=-35.71602995613105,
-        rating=4.6,
-        cuisine_type="Nordestina / Buffet",
-        price_range="medio",
-        address="Av. Dr. Antônio Gouveia, 487 - Pajuçara, Maceió-AL",
-        features=["buffet", "ambiente rústico", "música ao vivo", "lojinha"]
-    )
-]
+
 
 
 # funcoes utilitarias para trabalhar com listas de restaurantes

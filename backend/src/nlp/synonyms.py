@@ -21,12 +21,12 @@ CULINARIA = {
 
 
 PRECO = {
-    "baixo": ["barato", "economico", "acessivel", "em conta", "popular", "modesto", "baratinho", "custo-benefício", "promocional", "promoçao"],
-    "alto": ["caro", "luxo", "premium", "elevado", "sofisticado", "exclusivo", "alto custo"],
+    "baixo": ["barato", "baratos", "economico", "econômico", "econômicos", "acessivel", "acessível", "acessíveis", "em conta", "popular", "modesto", "baratinho", "custo-benefício", "promocional", "promoçao", "promoção", "preço baixo", "preços baixos"],
+    "alto": ["caro", "caros", "luxo", "luxuoso", "luxuosos", "premium", "elevado", "sofisticado", "exclusivo", "alto custo", "gourmet"],
 }
 
 DISTANCIA = {
-    "perto": ["perto", "próximo", "perto de mim", "aqui perto", "vizinho", "nas redondezas", "ao lado", "região próxima"],
+    "perto": ["perto", "próximo", "proximo", "perto de mim", "proximo de mim", "aqui perto", "vizinho", "nas redondezas", "ao lado", "região próxima", "mais perto"],
     "longe": ["longe", "distante", "afastado", "mais afastado", "distante daqui"],
 }
 

@@ -19,6 +19,7 @@ export const RestaurantProvider = ({ children }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [currentQuery, setCurrentQuery] = useState('')
+  const [dynamicTitle, setDynamicTitle] = useState('')
   const [locationSent, setLocationSent] = useState(false)
   const [businessRulesLoaded, setBusinessRulesLoaded] = useState(false)
 
@@ -40,9 +41,7 @@ export const RestaurantProvider = ({ children }) => {
       try {
         await BusinessRulesService.syncBusinessRules()
         setBusinessRulesLoaded(true)
-        console.log('regras de negócio sincronizadas com sucesso')
       } catch (error) {
-        console.error('erro ao sincronizar regras de negócio:', error)
         setBusinessRulesLoaded(true) // continuar mesmo com erro
       }
     }
@@ -56,10 +55,8 @@ export const RestaurantProvider = ({ children }) => {
 
     try {
       setLoading(true)
-      console.log('Enviando localização para o backend:', locationData)
       
       const response = await locationService.sendLocationToBackend(locationData)
-      console.log('Resposta do backend:', response)
       
       setLocationSent(true)
       
@@ -67,7 +64,6 @@ export const RestaurantProvider = ({ children }) => {
       await getRecommendations(locationData)
       
     } catch (error) {
-      console.error('Erro ao enviar localização:', error)
       setError('Erro ao enviar localização para o servidor')
     } finally {
       setLoading(false)
@@ -78,21 +74,17 @@ export const RestaurantProvider = ({ children }) => {
   const getRecommendations = async (locationData) => {
     try {
       setLoading(true)
-      console.log('Obtendo recomendações para:', locationData)
       
       const response = await locationService.getRecommendations(locationData, {
         maxResults: 5,
         maxDistance: 2.0
       })
       
-      console.log('Recomendações obtidas:', response)
-      
       if (response.restaurants) {
         setRestaurants(response.restaurants)
       }
       
     } catch (error) {
-      console.error('Erro ao obter recomendações:', error)
       setError('Erro ao obter recomendações')
     } finally {
       setLoading(false)
@@ -125,26 +117,25 @@ export const RestaurantProvider = ({ children }) => {
       // sanitizar texto da consulta
       const sanitizedQuery = FrontendValidator.sanitizeQueryText(query)
 
-      console.log('Buscando restaurantes com query:', sanitizedQuery)
-      console.log('Localização atual:', location)
-
       // Chamar API real do backend
       const response = await restaurantAPI.getRecommendations(
-        query,
+        sanitizedQuery,
         location.latitude,
         location.longitude
       )
 
-      console.log('Resposta da API:', response)
-
       if (response.data && response.data.recommendations) {
-        setRestaurants(response.data.recommendations)
+        const recommendations = response.data.recommendations
+        const title = response.data.dynamic_title || 'Restaurantes Encontrados'
+        
+        setRestaurants(recommendations)
+        setDynamicTitle(title)
       } else {
         setRestaurants([])
+        setDynamicTitle('Restaurantes Encontrados')
       }
 
     } catch (error) {
-      console.error('Erro ao buscar restaurantes:', error)
       setError(error.message || 'Erro ao buscar restaurantes')
       setRestaurants([])
     } finally {
@@ -169,7 +160,6 @@ export const RestaurantProvider = ({ children }) => {
         await sendLocationToBackend(newLocation)
       }
     } catch (error) {
-      console.error('Erro ao atualizar localização:', error)
       setError('Erro ao atualizar localização')
     }
   }
@@ -187,23 +177,20 @@ export const RestaurantProvider = ({ children }) => {
       const cachedLocation = loadCachedLocation()
       
       if (cachedLocation) {
-        console.log('Localização carregada do cache:', cachedLocation)
         await sendLocationToBackend(cachedLocation)
         return
       }
 
       // Se não há cache, solicitar nova localização
       if (isSupported) {
-        console.log('Solicitando nova localização...')
         const newLocation = await requestLocation()
         
         if (newLocation) {
-          console.log('Nova localização obtida:', newLocation)
           await sendLocationToBackend(newLocation)
         }
       }
     } catch (error) {
-      console.error('Erro ao inicializar localização:', error)
+      // Silenciar erro de inicialização
     }
   }
 
@@ -213,6 +200,7 @@ export const RestaurantProvider = ({ children }) => {
     loading,
     error,
     currentQuery,
+    dynamicTitle,
     
     // Estado da localização
     location,

@@ -6,7 +6,7 @@ import SearchBar from '../components/SearchBar'
 // dados mockados removidos - agora usando apenas dados da api
 
 const SearchResults = () => {
-  const { restaurants, loading, error, currentQuery, searchRestaurants } = useRestaurants()
+  const { restaurants, loading, error, currentQuery, dynamicTitle, searchRestaurants } = useRestaurants()
   
   // usar apenas dados da api
   const displayRestaurants = restaurants || []
@@ -43,7 +43,7 @@ const SearchResults = () => {
             {/* Título */}
             <div className="self-stretch p-2.5 inline-flex justify-start items-center gap-2.5">
               <div className="text-justify justify-start text-white text-2xl font-medium font-['Alexandria'] leading-[23px]">
-                Restaurantes 5 estrelas
+                {dynamicTitle || "Restaurantes Recomendados"}
               </div>
             </div>
             
@@ -112,7 +112,7 @@ const SearchResults = () => {
                   <div className="text-center py-12">
                     <p className="text-neutral-400 text-lg">
                       {currentQuery ? 
-                        'Nenhum restaurante encontrado. Tente uma busca diferente.' :
+                        'Nenhum restaurante encontrado nos próximos 25km. Tente uma busca diferente ou amplie a área de busca.' :
                         'Faça uma busca para ver os restaurantes.'
                       }
                     </p>
@@ -168,7 +168,7 @@ const SearchResults = () => {
               {/* Título */}
               <div className="self-stretch p-2.5 inline-flex justify-start items-center gap-2.5">
                 <div className="text-justify justify-start text-white text-xl font-medium font-['Alexandria'] leading-[18px]">
-                  Restaurantes 5 estrelas
+                  {dynamicTitle || "Restaurantes Recomendados"}
                 </div>
               </div>
               
@@ -235,7 +235,7 @@ const SearchResults = () => {
                   <div className="text-center py-12">
                     <p className="text-neutral-400 text-lg">
                       {currentQuery ? 
-                        'Nenhum restaurante encontrado. Tente uma busca diferente.' :
+                        'Nenhum restaurante encontrado nos próximos 25km. Tente uma busca diferente ou amplie a área de busca.' :
                         'Faça uma busca para ver os restaurantes.'
                       }
                     </p>
@@ -263,7 +263,6 @@ const SearchResults = () => {
       <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
           onSearch={async (query) => {
-            console.log('Nova pesquisa:', query)
             if (query.trim()) {
               await searchRestaurants(query)
             }

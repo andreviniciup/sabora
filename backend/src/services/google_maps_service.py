@@ -6,7 +6,7 @@ implementa busca de restaurantes usando google places api
 import os
 import requests
 from typing import List, Dict, Any, Optional
-from ..models.restaurant import Restaurant
+from models.restaurant import Restaurant
 
 
 class GoogleMapsService:
@@ -31,7 +31,7 @@ class GoogleMapsService:
         self, 
         latitude: float, 
         longitude: float, 
-        radius_meters: int = 2000,
+        radius_meters: int = 25000,  # aumentado para 25km por padrão
         keyword: str = None,
         type_filter: str = 'restaurant'
     ) -> List[Restaurant]:
@@ -48,11 +48,18 @@ class GoogleMapsService:
         Returns:
             lista de objetos restaurant
         """
+        print(f"🌐 MAPS: Iniciando busca de restaurantes")
+        print(f"   📍 Localização: {latitude}, {longitude}")
+        print(f"   📏 Raio: {radius_meters}m ({radius_meters/1000:.1f}km)")
+        print(f"   🔤 Keyword: '{keyword}'")
+        print(f"   🏷️ Tipo: {type_filter}")
+        
         if not self.api_key:
-            print("⚠️ Usando dados mockados (API key não configurada)")
-            return self._get_mock_restaurants(latitude, longitude)
+            print("⚠️ MAPS: API key não configurada")
+            return []
         
         try:
+            print("🌐 MAPS: Fazendo requisição para Google Places API...")
             # construir url da api
             url = f"{self.base_url}/place/nearbysearch/json"
             params = {
@@ -64,29 +71,45 @@ class GoogleMapsService:
             
             if keyword:
                 params['keyword'] = keyword
+                print(f"   🔍 Buscando com keyword: '{keyword}'")
+            
+            print(f"   📡 URL: {url}")
+            print(f"   📋 Parâmetros: {params}")
             
             # fazer requisição
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
             
             data = response.json()
+            print(f"   📊 Status da API: {data.get('status')}")
             
             if data['status'] != 'OK':
-                print(f"⚠️ Erro na API do Google: {data['status']}")
-                return self._get_mock_restaurants(latitude, longitude)
+                print(f"⚠️ MAPS: Erro na API do Google: {data['status']}")
+                print(f"   📄 Resposta completa: {data}")
+                return []
             
             # converter resultados para objetos restaurant
             restaurants = []
-            for place in data.get('results', []):
+            results = data.get('results', [])
+            print(f"   📊 Resultados da API: {len(results)} lugares encontrados")
+            
+            for i, place in enumerate(results):
+                print(f"   🔍 Convertendo lugar {i+1}: {place.get('name', 'Sem nome')}")
                 restaurant = self._place_to_restaurant(place, latitude, longitude)
                 if restaurant:
                     restaurants.append(restaurant)
+                    print(f"      ✅ Convertido: {restaurant.name}")
+                else:
+                    print(f"      ❌ Falha na conversão")
             
+            print(f"✅ MAPS: {len(restaurants)} restaurantes convertidos com sucesso")
             return restaurants
             
         except Exception as e:
-            print(f"⚠️ Erro ao buscar restaurantes: {e}")
-            return self._get_mock_restaurants(latitude, longitude)
+            print(f"⚠️ MAPS: Erro ao buscar restaurantes: {e}")
+            import traceback
+            print(f"   📋 Traceback: {traceback.format_exc()}")
+            return []
     
     def _place_to_restaurant(self, place: Dict[str, Any], user_lat: float, user_lon: float) -> Optional[Restaurant]:
         """
@@ -115,13 +138,13 @@ class GoogleMapsService:
             
             # tipos de culinaria
             types = place.get('types', [])
-            cuisine_type = self._extract_cuisine_type(types)
+            cuisine_type = self._extract_cuisine_type(types, name)
             
             # converter price_level para string
             price_range = self._price_level_to_range(price_level)
             
             # calcular distancia
-            from ..utils.geo_utils import calculate_distance, format_distance
+            from utils.geo_utils import calculate_distance, format_distance
             distance = calculate_distance(user_lat, user_lon, lat, lng)
             distance_formatted = format_distance(distance)
             
@@ -145,16 +168,76 @@ class GoogleMapsService:
             print(f"⚠️ Erro ao converter lugar para restaurante: {e}")
             return None
     
-    def _extract_cuisine_type(self, types: List[str]) -> str:
+    def _extract_cuisine_type(self, types: List[str], name: str = "") -> str:
         """
-        extrai tipo de culinaria dos tipos do google
+        extrai tipo de culinaria dos tipos do google e nome do restaurante
         
         Args:
             types: lista de tipos do google places
+            name: nome do restaurante
             
         Returns:
             tipo de culinaria
         """
+        # Primeiro, tentar extrair do nome do restaurante (mais preciso)
+        if name:
+            name_lower = name.lower()
+            
+            # Mapeamento de palavras-chave para tipos de culinária
+            name_keywords = {
+                'japonesa': 'Japonesa',
+                'japonês': 'Japonesa',
+                'japanese': 'Japonesa',
+                'sushi': 'Japonesa',
+                'temaki': 'Japonesa',
+                'sashimi': 'Japonesa',
+                'yaki': 'Japonesa',
+                'izakaya': 'Japonesa',
+                'oriental': 'Japonesa',  # Muitos restaurantes japoneses usam "oriental"
+                'italiana': 'Italiana',
+                'italian': 'Italiana',
+                'pizza': 'Pizzaria',
+                'chinesa': 'Chinesa',
+                'chinese': 'Chinesa',
+                'brasileira': 'Brasileira',
+                'brazilian': 'Brasileira',
+                'brasileiro': 'Brasileira',
+                'pastel': 'Brasileira',  # Pastel é tipicamente brasileiro
+                'pastelaria': 'Brasileira',
+                'churrasco': 'Brasileira',
+                'churrascaria': 'Brasileira',
+                'feijoada': 'Brasileira',
+                'nordestina': 'Brasileira',
+                'nordestino': 'Brasileira',
+                'regional': 'Brasileira',
+                'mexicana': 'Mexicana',
+                'mexican': 'Mexicana',
+                'indiana': 'Indiana',
+                'indian': 'Indiana',
+                'árabe': 'Árabe',
+                'arabic': 'Árabe',
+                'mediterrânea': 'Mediterrânea',
+                'mediterranean': 'Mediterrânea',
+                'frutos do mar': 'Frutos do Mar',
+                'seafood': 'Frutos do Mar',
+                'ceviche': 'Frutos do Mar',
+                'vegana': 'Vegana',
+                'vegan': 'Vegana',
+                'vegetariana': 'Vegetariana',
+                'vegetarian': 'Vegetariana',
+                'fast food': 'Fast Food',
+                'padaria': 'Padaria',
+                'bakery': 'Padaria',
+                'café': 'Café',
+                'cafe': 'Café',
+                'bar': 'Bar'
+            }
+            
+            for keyword, cuisine_type in name_keywords.items():
+                if keyword in name_lower:
+                    return cuisine_type
+        
+        # Se não encontrou no nome, tentar extrair dos tipos específicos do Google
         cuisine_mapping = {
             'restaurant': 'Restaurante',
             'italian_restaurant': 'Italiana',
@@ -198,44 +281,7 @@ class GoogleMapsService:
         }
         return mapping.get(price_level, 'medio')
     
-    def _get_mock_restaurants(self, latitude: float, longitude: float) -> List[Restaurant]:
-        """
-        retorna dados mockados quando api nao esta disponivel
-        
-        Args:
-            latitude: latitude do usuario
-            longitude: longitude do usuario
-            
-        Returns:
-            lista de restaurantes mockados
-        """
-        from ..models.restaurant import MOCK_RESTAURANTS
-        
-        # atualizar distancias dos mockados baseado na localizacao do usuario
-        from ..utils.geo_utils import calculate_distance, format_distance
-        
-        mock_restaurants = []
-        for restaurant in MOCK_RESTAURANTS:
-            distance = calculate_distance(latitude, longitude, restaurant.latitude, restaurant.longitude)
-            restaurant_copy = Restaurant(
-                id=restaurant.id,
-                name=restaurant.name,
-                latitude=restaurant.latitude,
-                longitude=restaurant.longitude,
-                rating=restaurant.rating,
-                cuisine_type=restaurant.cuisine_type,
-                price_range=restaurant.price_range,
-                address=restaurant.address,
-                phone=restaurant.phone,
-                website=restaurant.website,
-                opening_hours=restaurant.opening_hours,
-                features=restaurant.features,
-                distance=distance,
-                distance_formatted=format_distance(distance)
-            )
-            mock_restaurants.append(restaurant_copy)
-        
-        return mock_restaurants
+
     
     def geocode_address(self, address: str) -> Optional[Dict[str, float]]:
         """

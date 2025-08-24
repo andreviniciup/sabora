@@ -7,7 +7,7 @@ import SearchBar from '../components/SearchBar'
 // dados mockados removidos - agora usando apenas dados da api
 
 const CompleteList = () => {
-  const { restaurants, loading, error, searchRestaurants } = useRestaurants()
+  const { restaurants, loading, error, currentQuery, dynamicTitle, searchRestaurants } = useRestaurants()
   const [searchQuery, setSearchQuery] = useState('')
   
   // usar apenas dados da api - se não houver dados, mostrar mensagem
@@ -61,7 +61,7 @@ const CompleteList = () => {
             {/* Header */}
             <div className={`${displayRestaurants.length >= 8 ? "col-span-2" : "w-full"} flex justify-between items-center pb-6`}>
               <div className="text-white text-2xl font-semibold">Top {Math.min(displayRestaurants.length, 15)}</div>
-              <div className="text-white text-lg font-normal">Restaurantes 5 estrelas</div>
+                             <div className="text-white text-lg font-normal">{dynamicTitle || "Restaurantes Recomendados"}</div>
             </div>
 
             {/* Restaurant List */}
@@ -214,7 +214,7 @@ const CompleteList = () => {
                     lineHeight: '18px',
                     wordWrap: 'break-word'
                   }}>
-                    Restaurantes 5 estrelas
+                                         {dynamicTitle || "Restaurantes Recomendados"}
                   </div>
                 </div>
 
@@ -376,7 +376,6 @@ const CompleteList = () => {
       <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
           onSearch={async (query) => {
-            console.log('Pesquisando:', query)
             setSearchQuery(query)
             if (query.trim()) {
               await searchRestaurants(query)

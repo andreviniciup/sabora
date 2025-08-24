@@ -49,14 +49,27 @@ export const restaurantAPI = {
   // Buscar restaurantes com recomendação baseada em texto e localização
   getRecommendations: async (text, latitude, longitude) => {
     try {
-      const response = await api.post('/api/recommendations', {
+      console.log("🌐 API: Fazendo requisição para /api/recommendations")
+      console.log(`   📝 Texto: '${text}'`)
+      console.log(`   📍 Latitude: ${latitude}`)
+      console.log(`   📍 Longitude: ${longitude}`)
+      
+      const requestData = {
         text,
         latitude,
         longitude
-      })
+      }
+      
+      console.log("📤 Dados enviados:", requestData)
+      
+      const response = await api.post('/api/recommendations', requestData)
+      
+      console.log("📥 Resposta recebida:", response.data)
       return response.data
     } catch (error) {
+      console.error("❌ API: Erro na requisição:", error)
       if (error.response?.status === 400) {
+        console.error("   📄 Detalhes do erro:", error.response.data)
         throw new Error(error.response.data.message || 'Parâmetros de busca inválidos')
       }
       throw new Error(`Falha na busca: ${error.message}`)

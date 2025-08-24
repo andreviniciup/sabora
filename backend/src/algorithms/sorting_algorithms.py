@@ -64,7 +64,7 @@ if __name__ == '__main__':
     print("=== TESTE COM OBJETOS RESTAURANT ===")
     
     # Exemplo com objetos Restaurant (modelo real do projeto)
-    from ..models.restaurant import Restaurant
+    from models.restaurant import Restaurant
     
     restaurants_objects = [
         Restaurant(id=1, name='Restaurante A', latitude=-23.5505, longitude=-46.6333, 

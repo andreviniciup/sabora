@@ -7,6 +7,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sys
 import os
+from dotenv import load_dotenv
+
+# carregar variaveis de ambiente do arquivo .env
+load_dotenv()
 
 # adicionar o diretorio src ao path para imports
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -59,6 +63,19 @@ def health_check():
     }), 200
 
 
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """
+    endpoint para verificar configurações carregadas
+    """
+    return jsonify({
+        'google_maps_api_key_configured': bool(os.getenv('GOOGLE_MAPS_API_KEY')),
+        'redis_host': os.getenv('REDIS_HOST', 'localhost'),
+        'redis_port': os.getenv('REDIS_PORT', '6379'),
+        'flask_env': os.getenv('FLASK_ENV', 'development')
+    }), 200
+
+
 @app.route('/api/recommendations', methods=['POST'])
 def get_recommendations():
     """
@@ -102,10 +119,10 @@ def get_recommendations():
         latitude = float(data.get('latitude'))
         longitude = float(data.get('longitude'))
         
-        # passo 1: extrair filtros do texto usando parser
+        # extrair filtros do texto usando parser
         filters = query_parser.parse_query(text)
         
-        # passo 2: obter recomendacoes usando engine com cache
+        # obter recomendacoes usando engine com cache
         recommendations = recommendation_engine.get_recommendations_with_cache(
             latitude,
             longitude,
@@ -114,10 +131,13 @@ def get_recommendations():
             use_cache=True
         )
         
-        # passo 3: converter para dicionarios para json
+        # converter para dicionarios para json
         recommendations_dict = restaurants_to_dicts(recommendations)
         
-        return jsonify({
+        # Gerar título dinâmico
+        dynamic_title = query_parser.generate_dynamic_title(text)
+        
+        response_data = {
             'status': 'success',
             'message': f'encontrados {len(recommendations)} restaurantes',
             'data': {
@@ -127,9 +147,12 @@ def get_recommendations():
                     'longitude': longitude
                 },
                 'filters_extracted': filters,
-                'original_query': text
+                'original_query': text,
+                'dynamic_title': dynamic_title
             }
-        }), 200
+        }
+        
+        return jsonify(response_data), 200
         
     except Exception as e:
         return jsonify({
