@@ -3,6 +3,7 @@ import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import CompleteList from './pages/CompleteList'
 import { RestaurantProvider } from './context/RestaurantContext'
+import DebugPanel from './components/DebugPanel'
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
             <Route path="/search-results" element={<SearchResults />} />
             <Route path="/complete-list" element={<CompleteList />} />
           </Routes>
+          
+          {/* Debug Panel - apenas em desenvolvimento */}
+          {import.meta.env.DEV && <DebugPanel />}
         </div>
       </Router>
     </RestaurantProvider>

@@ -60,3 +60,6 @@ htmlcov/
 # arquivos de configuracao local
 config.local.py
 settings.local.py
+
+# documentacao completa (nao versionada)
+DOCUMENTACAO_COMPLETA.md

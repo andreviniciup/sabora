@@ -1,4 +1,5 @@
 import axios from 'axios'
+import logger from './logger.js'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sabora-backend.onrender.com'
 
@@ -10,31 +11,71 @@ const api = axios.create({
   },
 })
 
-// Interceptor para request
+// Interceptor para request com logging detalhado
 api.interceptors.request.use(
   (config) => {
-    console.log(`🌐 Making ${config.method?.toUpperCase()} request to: ${API_BASE_URL}${config.url}`)
-    console.log(`📤 Request data:`, config.data)
+    const startTime = Date.now()
+    config.metadata = { startTime }
+    
+    logger.apiCall(
+      config.method?.toUpperCase(),
+      `${API_BASE_URL}${config.url}`,
+      config.data,
+      null,
+      null
+    )
+    
+    logger.debug('Request Headers', config.headers)
+    logger.debug('Request Config', {
+      timeout: config.timeout,
+      baseURL: config.baseURL,
+      url: config.url
+    })
+    
     return config
   },
   (error) => {
-    console.error('❌ Request error:', error)
+    logger.apiError('REQUEST', 'Unknown URL', error)
     return Promise.reject(error)
   }
 )
 
-// Interceptor para response
+// Interceptor para response com logging detalhado
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ Response from ${response.config.url}:`, response.status)
-    console.log(`📥 Response data:`, response.data)
+    const duration = Date.now() - response.config.metadata.startTime
+    
+    logger.apiCall(
+      response.config.method?.toUpperCase(),
+      `${API_BASE_URL}${response.config.url}`,
+      response.config.data,
+      response.data,
+      duration
+    )
+    
     return response
   },
   (error) => {
-    console.error('❌ Response error:', error.response?.status, error.message)
-    if (error.response?.data) {
-      console.error('📄 Error details:', error.response.data)
+    const duration = error.config?.metadata ? 
+      Date.now() - error.config.metadata.startTime : null
+    
+    logger.apiError(
+      error.config?.method?.toUpperCase() || 'UNKNOWN',
+      error.config?.url || 'Unknown URL',
+      error,
+      error.config?.data
+    )
+    
+    // log específico para CORS
+    if (error.message === 'Network Error' && !error.response) {
+      logger.error('CORS Error Detected', error, {
+        origin: window.location.origin,
+        targetUrl: API_BASE_URL,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      })
     }
+    
     return Promise.reject(error)
   }
 )

@@ -3,6 +3,7 @@ import useGeolocation from '../hooks/useGeolocation'
 import locationService from '../services/locationService'
 import { restaurantAPI } from '../services/api'
 import { FrontendValidator, BusinessRulesService } from '../services/businessRules'
+import logger from '../services/logger.js'
 
 const RestaurantContext = createContext()
 
@@ -94,6 +95,9 @@ export const RestaurantProvider = ({ children }) => {
   // Buscar restaurantes com API real
   const searchRestaurants = async (query) => {
     try {
+      logger.userEvent('search_restaurants', { query, location })
+      logger.appState('RestaurantContext', 'search_started', { query })
+      
       setLoading(true)
       setCurrentQuery(query)
       setError(null)
@@ -106,18 +110,27 @@ export const RestaurantProvider = ({ children }) => {
       })
 
       if (validationErrors.length > 0) {
+        logger.warn('Validation errors in search', validationErrors)
         throw new Error(`erros de validação: ${validationErrors.join(', ')}`)
       }
 
       // Verificar se temos localização
       if (!location) {
+        logger.error('Location not available for search', null, { query })
         throw new Error('Localização não disponível. Por favor, permita o acesso à localização.')
       }
 
       // sanitizar texto da consulta
       const sanitizedQuery = FrontendValidator.sanitizeQueryText(query)
+      logger.debug('Sanitized query', { original: query, sanitized: sanitizedQuery })
 
       // Chamar API real do backend
+      logger.info('Calling backend API', {
+        query: sanitizedQuery,
+        latitude: location.latitude,
+        longitude: location.longitude
+      })
+      
       const response = await restaurantAPI.getRecommendations(
         sanitizedQuery,
         location.latitude,
@@ -128,18 +141,34 @@ export const RestaurantProvider = ({ children }) => {
         const recommendations = response.data.recommendations
         const title = response.data.dynamic_title || 'Restaurantes Encontrados'
         
+        logger.info('Search successful', {
+          resultsCount: recommendations.length,
+          title: title
+        })
+        
         setRestaurants(recommendations)
         setDynamicTitle(title)
       } else {
+        logger.warn('No recommendations found', response.data)
         setRestaurants([])
         setDynamicTitle('Restaurantes Encontrados')
       }
 
     } catch (error) {
+      logger.error('Search failed', error, {
+        query,
+        location,
+        errorMessage: error.message
+      })
+      
       setError(error.message || 'Erro ao buscar restaurantes')
       setRestaurants([])
     } finally {
       setLoading(false)
+      logger.appState('RestaurantContext', 'search_completed', { 
+        query, 
+        resultsCount: restaurants.length 
+      })
     }
   }
 

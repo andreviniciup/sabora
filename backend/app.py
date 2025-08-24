@@ -21,6 +21,7 @@ from src.processors.recommendation_engine import RecommendationEngine
 from src.models.restaurant import Restaurant, restaurants_to_dicts
 from src.services.cache_service import cache_service
 from src.utils.validators import business_validator
+from src.utils.logger import backend_logger
 
 # configuracao do app
 app = Flask(__name__)
@@ -31,12 +32,16 @@ CORS(app, origins=[
     'http://127.0.0.1:3000', 
     'http://localhost:5173', 
     'http://127.0.0.1:5173',
-    'https://sabora.vercel.app',  # URL do seu frontend na Vercel
-    'https://sabora-wine.vercel.app',  # URL atual do frontend na Vercel
-    'https://sabora-git-main-andreviniciup.vercel.app',  # URL de preview da Vercel
-    'https://sabora-andreviniciup.vercel.app',  # URL alternativa da Vercel
-    'https://*.vercel.app'  # Permite qualquer subdomínio da Vercel
-])
+    'https://sabora.vercel.app',
+    'https://sabora-wine.vercel.app',
+    'https://sabora-git-main-andreviniciup.vercel.app',
+    'https://sabora-andreviniciup.vercel.app',
+    'https://sabora-git-main-andreviniciup.vercel.app',
+    'https://sabora-andreviniciup.vercel.app',
+    'https://sabora-wine.vercel.app',
+    'https://sabora-git-main-andreviniciup.vercel.app',
+    'https://sabora-andreviniciup.vercel.app'
+], supports_credentials=True)
 
 # instancias globais
 query_parser = QueryParser()
@@ -47,6 +52,9 @@ query_parser.set_cuisine_synonyms(CULINARIA)
 query_parser.set_price_synonyms(PRECO)
 query_parser.set_distance_synonyms(DISTANCIA)
 query_parser.set_rating_synonyms(AVALIACAO)
+
+# log de inicialização
+backend_logger.startup()
 
 
 @app.route('/')
@@ -98,11 +106,19 @@ def get_recommendations():
         "longitude": float
     }
     """
+    import time
+    start_time = time.time()
+    
     try:
+        # log da requisição
+        backend_logger.api_request('POST', '/api/recommendations', request.get_json())
+        backend_logger.cors_request(request.headers.get('Origin', 'Unknown'))
+        
         # obter dados da requisicao
         data = request.get_json()
         
         if not data:
+            backend_logger.warn('No data provided in request')
             return jsonify({
                 'error': 'dados nao fornecidos',
                 'message': 'envie text, latitude e longitude no corpo da requisicao'
@@ -111,6 +127,7 @@ def get_recommendations():
         # validar entrada usando regras de negócio
         validation_errors = business_validator.validate_search_query(data)
         if validation_errors:
+            backend_logger.warn('Validation errors found', validation_errors)
             return jsonify({
                 'error': 'dados invalidos',
                 'message': 'erros de validacao encontrados',
@@ -129,8 +146,19 @@ def get_recommendations():
         latitude = float(data.get('latitude'))
         longitude = float(data.get('longitude'))
         
+        backend_logger.nlp_processing(text, {
+            'latitude': latitude,
+            'longitude': longitude
+        })
+        
         # extrair filtros do texto usando parser
         filters = query_parser.parse_query(text)
+        
+        backend_logger.recommendation_engine('starting_recommendations', {
+            'text': text,
+            'filters': filters,
+            'location': {'lat': latitude, 'lng': longitude}
+        })
         
         # obter recomendacoes usando engine com cache
         recommendations = recommendation_engine.get_recommendations_with_cache(
@@ -147,6 +175,8 @@ def get_recommendations():
         # Gerar título dinâmico
         dynamic_title = query_parser.generate_dynamic_title(text)
         
+        duration = int((time.time() - start_time) * 1000)
+        
         response_data = {
             'status': 'success',
             'message': f'encontrados {len(recommendations)} restaurantes',
@@ -162,9 +192,23 @@ def get_recommendations():
             }
         }
         
+        backend_logger.api_response('POST', '/api/recommendations', 200, {
+            'results_count': len(recommendations),
+            'dynamic_title': dynamic_title
+        }, duration)
+        
+        backend_logger.performance('recommendations_endpoint', duration, {
+            'results_count': len(recommendations),
+            'query_length': len(text)
+        })
+        
         return jsonify(response_data), 200
         
     except Exception as e:
+        duration = int((time.time() - start_time) * 1000)
+        backend_logger.api_error('POST', '/api/recommendations', e, request.get_json())
+        backend_logger.performance('recommendations_endpoint_error', duration)
+        
         return jsonify({
             'error': 'erro interno do servidor',
             'message': str(e)
