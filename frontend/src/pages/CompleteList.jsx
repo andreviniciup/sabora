@@ -4,66 +4,14 @@ import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
 
-// Dados mockados para demonstração
-const MOCK_RESTAURANTS = [
-  {
-    id: "1",
-    name: "Restaurante Janga Praia",
-    rating: 5,
-    address: "R. Dep. José Lages, 813 - Ponta Verde, Maceió - AL",
-    distance: "1 km de você",
-    rank: 1,
-    category: "Frutos do Mar",
-    price_level: 3
-  },
-  {
-    id: "2", 
-    name: "Piccola Villa",
-    rating: 5,
-    address: "R. Dep. José Lages, 813 - Pajuçara, Maceió - AL",
-    distance: "1 km de você",
-    rank: 2,
-    category: "Italiana",
-    price_level: 4
-  },
-  {
-    id: "3",
-    name: "Restaurante Garuva", 
-    rating: 5,
-    address: "R. Dep. José Lages, 813 - Ponta Verde, Maceió - AL",
-    distance: "1 km de você",
-    rank: 3,
-    category: "Regional",
-    price_level: 2
-  },
-  {
-    id: "4",
-    name: "Villa Gourmet",
-    rating: 4,
-    address: "R. Dep. José Lages, 813 - Centro, Maceió - AL",
-    distance: "2 km de você", 
-    rank: 4,
-    category: "Internacional",
-    price_level: 4
-  },
-  {
-    id: "5",
-    name: "Sabor da Terra",
-    rating: 4,
-    address: "R. Dep. José Lages, 813 - Farol, Maceió - AL",
-    distance: "3 km de você",
-    rank: 5,
-    category: "Regional",
-    price_level: 2
-  }
-]
+// dados mockados removidos - agora usando apenas dados da api
 
 const CompleteList = () => {
-  const { restaurants } = useRestaurants()
+  const { restaurants, loading, error, searchRestaurants } = useRestaurants()
   const [searchQuery, setSearchQuery] = useState('')
   
-  // Usar dados mockados se não houver dados do contexto
-  const displayRestaurants = restaurants.length > 0 ? restaurants : [...MOCK_RESTAURANTS, ...MOCK_RESTAURANTS, ...MOCK_RESTAURANTS]
+  // usar apenas dados da api - se não houver dados, mostrar mensagem
+  const displayRestaurants = restaurants || []
 
   // Calcular largura dinâmica baseada no texto
   const getSearchBarWidth = () => {
@@ -117,51 +65,56 @@ const CompleteList = () => {
             </div>
 
             {/* Restaurant List */}
-            {displayRestaurants.map((restaurant, index) => (
-              <div 
-                key={restaurant.id} 
-                className="w-full pb-4 flex flex-col gap-3"
-              >
-                {/* Distance */}
-                <div className="w-full flex justify-end">
-                  <div className="text-zinc-500 text-xs font-medium">
-                    {restaurant.distance}
-                  </div>
-                </div>
+                            {displayRestaurants.map((restaurant, index) => (
+                  <div 
+                    key={restaurant.id || index} 
+                    className="w-full pb-4 flex flex-col gap-3"
+                  >
+                    {/* Distance */}
+                    <div className="w-full flex justify-end">
+                      <div className="text-zinc-500 text-xs font-medium">
+                        {restaurant.distance_formatted || restaurant.distance || 'distância não disponível'}
+                      </div>
+                    </div>
 
-                {/* Main Item */}
-                <div className="flex items-center gap-4">
-                  <div className="text-white text-6xl font-bold">
-                    {restaurant.rank}.
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <div className="text-white text-sm font-medium">
-                      {restaurant.name}
+                    {/* Main Item */}
+                    <div className="flex items-center gap-4">
+                      <div className="text-white text-6xl font-bold">
+                        {restaurant.rank || (index + 1)}.
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <div className="text-white text-sm font-medium">
+                          {restaurant.name}
+                        </div>
+                        {/* Stars */}
+                        <div className="flex gap-1">
+                          {[...Array(Math.floor(restaurant.rating || 0))].map((_, starIndex) => (
+                            <img
+                              key={starIndex}
+                              src="/Star-vector.svg"
+                              alt="star"
+                              width="14"
+                              height="13"
+                            />
+                          ))}
+                        </div>
+                        <div className="text-neutral-400 text-xs">
+                          {restaurant.address}
+                        </div>
+                        {restaurant.cuisine_type && (
+                          <div className="text-neutral-500 text-xs">
+                            {restaurant.cuisine_type}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {/* Stars */}
-                    <div className="flex gap-1">
-                      {[...Array(restaurant.rating)].map((_, starIndex) => (
-                        <img
-                          key={starIndex}
-                          src="/Star-vector.svg"
-                          alt="star"
-                          width="14"
-                          height="13"
-                        />
-                      ))}
-                    </div>
-                    <div className="text-neutral-400 text-xs">
-                      {restaurant.address}
-                    </div>
-                  </div>
-                </div>
 
-                {/* Divider */}
-                {index < displayRestaurants.length - 1 && (
-                  <div className="w-full border-t border-zinc-600" />
-                )}
-              </div>
-            ))}
+                    {/* Divider */}
+                    {index < displayRestaurants.length - 1 && (
+                      <div className="w-full border-t border-zinc-600" />
+                    )}
+                  </div>
+                ))}
           </div>
         </div>
 
@@ -275,7 +228,7 @@ const CompleteList = () => {
                   display: 'flex'
                 }}>
                   {displayRestaurants.slice(0, 5).map((restaurant, index) => (
-                    <div key={restaurant.id}>
+                    <div key={restaurant.id || index}>
                       <div style={{
                         width: '313px',
                         height: '127px',
@@ -301,7 +254,7 @@ const CompleteList = () => {
                             lineHeight: '23px',
                             wordWrap: 'break-word'
                           }}>
-                            {restaurant.distance}
+                            {restaurant.distance_formatted || restaurant.distance || 'distância não disponível'}
                           </div>
                         </div>
 
@@ -323,7 +276,7 @@ const CompleteList = () => {
                             lineHeight: '55px',
                             wordWrap: 'break-word'
                           }}>
-                            {restaurant.rank}.
+                            {restaurant.rank || (index + 1)}.
                           </div>
 
                           {/* Info */}
@@ -361,7 +314,7 @@ const CompleteList = () => {
                                 gap: '2px',
                                 alignItems: 'center'
                               }}>
-                                {[...Array(restaurant.rating)].map((_, starIndex) => (
+                                {[...Array(Math.floor(restaurant.rating || 0))].map((_, starIndex) => (
                                   <img 
                                     key={starIndex}
                                     src="/Star-vector.svg" 
@@ -385,6 +338,20 @@ const CompleteList = () => {
                             }}>
                               {restaurant.address}
                             </div>
+                            {restaurant.cuisine_type && (
+                              <div style={{
+                                alignSelf: 'stretch',
+                                textAlign: 'justify',
+                                color: '#575757',
+                                fontSize: '10px',
+                                fontFamily: 'Alexandria',
+                                fontWeight: '400',
+                                lineHeight: '18px',
+                                wordWrap: 'break-word'
+                              }}>
+                                {restaurant.cuisine_type}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -408,11 +375,15 @@ const CompleteList = () => {
       {/* SearchBar Flutuante - Responsivo */}
       <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
-          onSearch={(query) => {
+          onSearch={async (query) => {
             console.log('Pesquisando:', query)
             setSearchQuery(query)
+            if (query.trim()) {
+              await searchRestaurants(query)
+            }
           }}
           placeholder="Pesquisar"
+          loading={loading}
           className="transition-all duration-300 ease-in-out"
           style={{ 
             backgroundColor: '#181818',
@@ -424,9 +395,25 @@ const CompleteList = () => {
       </div>
 
       {/* Loading state */}
-      {displayRestaurants.length === 0 && (
+      {loading && (
         <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <LoadingSpinner size="lg" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="absolute left-5 top-5 bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
+          <p className="font-medium">Erro ao carregar restaurantes</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && displayRestaurants.length === 0 && (
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+          <p className="text-neutral-400 text-lg">Nenhum restaurante encontrado</p>
+          <p className="text-neutral-500 text-sm">Faça uma busca para ver os restaurantes</p>
         </div>
       )}
     </div>

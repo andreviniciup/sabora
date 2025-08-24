@@ -30,10 +30,10 @@ class CacheService:
             self.redis_client = redis.from_url(self.redis_url)
             # Testar conexão
             self.redis_client.ping()
-            logger.info("✅ Cache Redis conectado com sucesso")
+            logger.info("Cache Redis conectado com sucesso")
         except Exception as e:
-            logger.warning(f"⚠️ Cache Redis não disponível: {e}")
-            logger.info("📝 Usando cache em memória como fallback")
+            logger.warning(f" Cache Redis não disponível: {e}")
+            logger.info(" Usando cache em memória como fallback")
             self.cache_enabled = False
             self.memory_cache = {}
     
@@ -83,10 +83,10 @@ class CacheService:
             cached_data = self.redis_client.get(cache_key)
             
             if cached_data:
-                logger.info(f"🎯 Cache hit para: {query[:30]}...")
+                logger.info(f" Cache hit para: {query[:30]}...")
                 return json.loads(cached_data)
             else:
-                logger.info(f"❌ Cache miss para: {query[:30]}...")
+                logger.info(f" Cache miss para: {query[:30]}...")
                 return None
                 
         except Exception as e:
@@ -119,7 +119,7 @@ class CacheService:
             # Armazenar no Redis com TTL
             self.redis_client.setex(cache_key, ttl_seconds, cache_data)
             
-            logger.info(f"💾 Cache armazenado para: {query[:30]}... (TTL: {ttl_seconds}s)")
+            logger.info(f"Cache armazenado para: {query[:30]}... (TTL: {ttl_seconds}s)")
             return True
             
         except Exception as e:
@@ -161,7 +161,7 @@ class CacheService:
                 except Exception as e:
                     logger.error(f"Erro ao invalidar chave {key}: {e}")
             
-            logger.info(f"🗑️ Invalidadas {invalidated_count} chaves de cache")
+            logger.info(f"Invalidadas {invalidated_count} chaves de cache")
             return invalidated_count
             
         except Exception as e:
@@ -216,7 +216,7 @@ class CacheService:
             
             if keys:
                 self.redis_client.delete(*keys)
-                logger.info(f"🧹 Cache limpo: {len(keys)} chaves removidas")
+                logger.info(f"Cache limpo: {len(keys)} chaves removidas")
             
             return True
             

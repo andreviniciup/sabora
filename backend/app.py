@@ -16,6 +16,7 @@ from src.nlp.synonyms import CULINARIA, PRECO, DISTANCIA, AVALIACAO
 from src.processors.recommendation_engine import RecommendationEngine
 from src.models.restaurant import Restaurant, restaurants_to_dicts
 from src.services.cache_service import cache_service
+from src.utils.validators import business_validator
 
 # configuracao do app
 app = Flask(__name__)
@@ -80,39 +81,26 @@ def get_recommendations():
                 'message': 'envie text, latitude e longitude no corpo da requisicao'
             }), 400
         
-        # validar campos obrigatorios
-        text = data.get('text')
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
-        
-        if not text or latitude is None or longitude is None:
+        # validar entrada usando regras de negócio
+        validation_errors = business_validator.validate_search_query(data)
+        if validation_errors:
             return jsonify({
-                'error': 'campos obrigatorios faltando',
-                'message': 'text, latitude e longitude sao obrigatorios'
+                'error': 'dados invalidos',
+                'message': 'erros de validacao encontrados',
+                'validation_errors': [
+                    {
+                        'field': error.field,
+                        'message': error.message,
+                        'code': error.code
+                    }
+                    for error in validation_errors
+                ]
             }), 400
         
-        # validar tipos de dados
-        try:
-            latitude = float(latitude)
-            longitude = float(longitude)
-        except (ValueError, TypeError):
-            return jsonify({
-                'error': 'tipo de dados invalido',
-                'message': 'latitude e longitude devem ser numeros'
-            }), 400
-        
-        # validar range das coordenadas
-        if not (-90 <= latitude <= 90):
-            return jsonify({
-                'error': 'latitude invalida',
-                'message': 'latitude deve estar entre -90 e 90 graus'
-            }), 400
-        
-        if not (-180 <= longitude <= 180):
-            return jsonify({
-                'error': 'longitude invalida',
-                'message': 'longitude deve estar entre -180 e 180 graus'
-            }), 400
+        # extrair dados validados
+        text = business_validator.sanitize_query_text(data.get('text', ''))
+        latitude = float(data.get('latitude'))
+        longitude = float(data.get('longitude'))
         
         # passo 1: extrair filtros do texto usando parser
         filters = query_parser.parse_query(text)
@@ -146,6 +134,24 @@ def get_recommendations():
     except Exception as e:
         return jsonify({
             'error': 'erro interno do servidor',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/business-rules', methods=['GET'])
+def get_business_rules():
+    """
+    endpoint para obter regras de negócio do sistema
+    """
+    try:
+        rules = business_validator.get_business_rules_summary()
+        return jsonify({
+            'status': 'success',
+            'data': rules
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'error': 'erro ao obter regras de negócio',
             'message': str(e)
         }), 500
 

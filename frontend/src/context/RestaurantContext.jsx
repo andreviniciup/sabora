@@ -1,7 +1,8 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import useGeolocation from '../hooks/useGeolocation'
 import locationService from '../services/locationService'
 import { restaurantAPI } from '../services/api'
+import { FrontendValidator, BusinessRulesService } from '../services/businessRules'
 
 const RestaurantContext = createContext()
 
@@ -19,6 +20,7 @@ export const RestaurantProvider = ({ children }) => {
   const [error, setError] = useState(null)
   const [currentQuery, setCurrentQuery] = useState('')
   const [locationSent, setLocationSent] = useState(false)
+  const [businessRulesLoaded, setBusinessRulesLoaded] = useState(false)
 
   // Hook de geolocalização
   const {
@@ -31,6 +33,22 @@ export const RestaurantProvider = ({ children }) => {
     loadCachedLocation,
     clearLocationCache
   } = useGeolocation()
+
+  // sincronizar regras de negócio com o backend
+  useEffect(() => {
+    const syncRules = async () => {
+      try {
+        await BusinessRulesService.syncBusinessRules()
+        setBusinessRulesLoaded(true)
+        console.log('regras de negócio sincronizadas com sucesso')
+      } catch (error) {
+        console.error('erro ao sincronizar regras de negócio:', error)
+        setBusinessRulesLoaded(true) // continuar mesmo com erro
+      }
+    }
+    
+    syncRules()
+  }, [])
 
   // Enviar localização para o backend
   const sendLocationToBackend = async (locationData) => {
@@ -88,12 +106,26 @@ export const RestaurantProvider = ({ children }) => {
       setCurrentQuery(query)
       setError(null)
 
+      // validar entrada usando regras de negócio
+      const validationErrors = FrontendValidator.validateSearchData({
+        text: query,
+        latitude: location?.latitude,
+        longitude: location?.longitude
+      })
+
+      if (validationErrors.length > 0) {
+        throw new Error(`erros de validação: ${validationErrors.join(', ')}`)
+      }
+
       // Verificar se temos localização
       if (!location) {
         throw new Error('Localização não disponível. Por favor, permita o acesso à localização.')
       }
 
-      console.log('Buscando restaurantes com query:', query)
+      // sanitizar texto da consulta
+      const sanitizedQuery = FrontendValidator.sanitizeQueryText(query)
+
+      console.log('Buscando restaurantes com query:', sanitizedQuery)
       console.log('Localização atual:', location)
 
       // Chamar API real do backend
@@ -189,6 +221,9 @@ export const RestaurantProvider = ({ children }) => {
     permission,
     isSupported,
     locationSent,
+    
+    // Estado das regras de negócio
+    businessRulesLoaded,
     
     // Funções
     setRestaurants,

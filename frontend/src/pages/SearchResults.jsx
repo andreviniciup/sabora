@@ -3,46 +3,14 @@ import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
 
-// Dados mockados para demonstração
-const MOCK_RESTAURANTS = [
-  {
-    id: "1",
-    name: "Restaurante Janga Praia",
-    rating: 5,
-    address: "Av. Silvio Carlos Viana, 1731 - Ponta Verde, Maceió - AL",
-    distance: "1 km de você",
-    rank: 1,
-    category: "Frutos do Mar",
-    price_level: 3
-  },
-  {
-    id: "2", 
-    name: "Piccola Villa",
-    rating: 5,
-    address: "R. Jangadeiros Alagoanos, 1564 - Pajuçara, Maceió - AL",
-    distance: "1 km de você",
-    rank: 2,
-    category: "Italiana",
-    price_level: 4
-  },
-  {
-    id: "3",
-    name: "Restaurante Caruva", 
-    rating: 5,
-    address: "R. Dep. José Lages, 813 - Ponta Verde, Maceió - AL",
-    distance: "1 km de você",
-    rank: 3,
-    category: "Regional",
-    price_level: 2
-  }
-]
+// dados mockados removidos - agora usando apenas dados da api
 
 const SearchResults = () => {
-  const { restaurants, loading, error, currentQuery } = useRestaurants()
+  const { restaurants, loading, error, currentQuery, searchRestaurants } = useRestaurants()
   
-  // Usar dados mockados se não houver dados do contexto
-  const displayRestaurants = restaurants.length > 0 ? restaurants : MOCK_RESTAURANTS
-  const displayLoading = loading && restaurants.length === 0
+  // usar apenas dados da api
+  const displayRestaurants = restaurants || []
+  const displayLoading = loading
 
   return (
     <div className="min-h-screen bg-neutral-900 font-alexandria overflow-hidden">
@@ -89,19 +57,19 @@ const SearchResults = () => {
                   </div>
                 ) : displayRestaurants.length > 0 ? (
                   displayRestaurants.slice(0, 3).map((restaurant, index) => (
-                    <div key={restaurant.id} className="self-stretch p-5 bg-neutral-700 rounded-[20px] flex flex-col justify-start items-start gap-2.5">
+                    <div key={restaurant.id || index} className="self-stretch p-5 bg-neutral-700 rounded-[20px] flex flex-col justify-start items-start gap-2.5">
                       <div className="self-stretch flex flex-col justify-start items-start">
                         {/* Distância */}
                         <div className="self-stretch inline-flex justify-end items-center gap-2.5">
                           <div className="text-justify justify-start text-zinc-600 text-xs font-medium font-['Alexandria'] leading-[23px]">
-                            {restaurant.distance}
+                            {restaurant.distance_formatted || restaurant.distance || 'distância não disponível'}
                           </div>
                         </div>
                         
                         {/* Conteúdo principal */}
                         <div className="self-stretch inline-flex justify-start items-center gap-2.5">
                           <div className="text-justify justify-start text-white text-8xl font-semibold font-['Alexandria'] leading-[23px]">
-                            {index + 1}.
+                            {restaurant.rank || (index + 1)}.
                           </div>
                           <div className="w-[223px] inline-flex flex-col justify-start items-start gap-2.5">
                             <div className="w-[185px] flex flex-col justify-start items-start gap-[5px]">
@@ -110,7 +78,7 @@ const SearchResults = () => {
                               </div>
                               {/* Stars */}
                               <div className="flex items-center gap-1">
-                                {[...Array(restaurant.rating)].map((_, starIndex) => (
+                                {[...Array(Math.floor(restaurant.rating || 0))].map((_, starIndex) => (
                                   <svg 
                                     key={starIndex}
                                     width="16" 
@@ -130,6 +98,11 @@ const SearchResults = () => {
                             <div className="self-stretch text-justify justify-start text-neutral-400 text-xs font-normal font-['Alexandria'] leading-[23px]">
                               {restaurant.address}
                             </div>
+                            {restaurant.cuisine_type && (
+                              <div className="self-stretch text-justify justify-start text-neutral-500 text-xs font-normal font-['Alexandria'] leading-[18px]">
+                                {restaurant.cuisine_type}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -207,19 +180,19 @@ const SearchResults = () => {
                   </div>
                 ) : displayRestaurants.length > 0 ? (
                   displayRestaurants.slice(0, 3).map((restaurant, index) => (
-                    <div key={restaurant.id} className="self-stretch px-6 py-3 bg-neutral-700 rounded-[16px] flex flex-col justify-start items-start gap-2">
+                    <div key={restaurant.id || index} className="self-stretch px-6 py-3 bg-neutral-700 rounded-[16px] flex flex-col justify-start items-start gap-2">
                       <div className="self-stretch flex flex-col justify-start items-start gap-2">
                         {/* Distância */}
                         <div className="self-stretch p-1 inline-flex justify-end items-center gap-2">
                           <div className="text-justify justify-start text-zinc-600 text-xs font-medium font-['Alexandria'] leading-[16px]">
-                            {restaurant.distance}
+                            {restaurant.distance_formatted || restaurant.distance || 'distância não disponível'}
                           </div>
                         </div>
                         
                         {/* Item principal */}
                         <div className="inline-flex justify-start items-center gap-2">
                           <div className="text-justify justify-start text-white text-6xl font-semibold font-['Alexandria'] leading-[16px]">
-                            {index + 1}.
+                            {restaurant.rank || (index + 1)}.
                           </div>
                           <div className="w-[240px] inline-flex flex-col justify-start items-start gap-2">
                             <div className="w-[140px] flex flex-col justify-start items-start gap-1">
@@ -228,7 +201,7 @@ const SearchResults = () => {
                               </div>
                               {/* Stars */}
                               <div className="flex items-center gap-1">
-                                {[...Array(restaurant.rating)].map((_, starIndex) => (
+                                {[...Array(Math.floor(restaurant.rating || 0))].map((_, starIndex) => (
                                   <svg 
                                     key={starIndex}
                                     width="14" 
@@ -248,6 +221,11 @@ const SearchResults = () => {
                             <div className="self-stretch text-justify justify-start text-neutral-400 text-xs font-normal font-['Alexandria'] leading-[14px]">
                               {restaurant.address}
                             </div>
+                            {restaurant.cuisine_type && (
+                              <div className="self-stretch text-justify justify-start text-neutral-500 text-xs font-normal font-['Alexandria'] leading-[12px]">
+                                {restaurant.cuisine_type}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -284,8 +262,14 @@ const SearchResults = () => {
       {/* SearchBar Flutuante - Responsivo */}
       <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
-          onSearch={(query) => console.log('Nova pesquisa:', query)}
+          onSearch={async (query) => {
+            console.log('Nova pesquisa:', query)
+            if (query.trim()) {
+              await searchRestaurants(query)
+            }
+          }}
           placeholder="Pesquisar"
+          loading={loading}
           className="w-[240px] lg:w-[200px] transition-all duration-300 ease-in-out"
           style={{ backgroundColor: '#181818' }}
         />
