@@ -131,6 +131,9 @@ const SearchResults = () => {
                   </Link>
                 </div>
               )}
+              
+              {/* Espaço para evitar conflito com SearchBar flutuante */}
+              <div className="h-20 lg:h-16"></div>
             </div>
           </div>
         </div>
@@ -254,13 +257,16 @@ const SearchResults = () => {
                   </Link>
                 </div>
               )}
+              
+              {/* Espaço para evitar conflito com SearchBar flutuante */}
+              <div className="h-16"></div>
             </div>
           </div>
         </div>
       </div>
 
       {/* SearchBar Flutuante - Responsivo */}
-      <div className="fixed bottom-8 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="fixed bottom-16 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <SearchBar 
           onSearch={async (query) => {
             if (query.trim()) {
