@@ -32,14 +32,23 @@ class BackendLogger:
         log_data = {
             'timestamp': datetime.now().isoformat(),
             'level': level,
-            'message': message,
-            'request_id': getattr(request, 'id', None),
-            'endpoint': request.endpoint if request else None,
-            'method': request.method if request else None,
-            'url': request.url if request else None,
-            'user_agent': request.headers.get('User-Agent') if request else None,
-            'origin': request.headers.get('Origin') if request else None
+            'message': message
         }
+        
+        # adicionar informações de request apenas se estiver no contexto
+        try:
+            if request:
+                log_data.update({
+                    'request_id': getattr(request, 'id', None),
+                    'endpoint': request.endpoint if request else None,
+                    'method': request.method if request else None,
+                    'url': request.url if request else None,
+                    'user_agent': request.headers.get('User-Agent') if request else None,
+                    'origin': request.headers.get('Origin') if request else None
+                })
+        except RuntimeError:
+            # fora do contexto de request
+            pass
         
         if data:
             log_data['data'] = data
@@ -75,10 +84,17 @@ class BackendLogger:
     
     def api_request(self, method, url, data=None):
         """log de requisição da api"""
-        self.info(f'API Request: {method} {url}', {
-            'request_data': data,
-            'headers': dict(request.headers) if request else {}
-        })
+        log_data = {
+            'request_data': data
+        }
+        
+        try:
+            if request:
+                log_data['headers'] = dict(request.headers)
+        except RuntimeError:
+            pass
+            
+        self.info(f'API Request: {method} {url}', log_data)
     
     def api_response(self, method, url, status_code, data=None, duration=None):
         """log de resposta da api"""
