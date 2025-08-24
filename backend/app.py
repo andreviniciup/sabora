@@ -32,7 +32,8 @@ CORS(app, origins=[
     'http://localhost:5173', 
     'http://127.0.0.1:5173',
     'https://sabora.vercel.app',  # URL do seu frontend na Vercel
-    'https://*.vercel.app'  # Permite qualquer subdomínio da Vercel
+    'https://sabora-git-main-andreviniciup.vercel.app',  # URL de preview da Vercel
+    'https://sabora-andreviniciup.vercel.app'  # URL alternativa da Vercel
 ])
 
 # instancias globais
