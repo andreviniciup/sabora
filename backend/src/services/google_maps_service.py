@@ -6,7 +6,7 @@ implementa busca de restaurantes usando google places api
 import os
 import requests
 from typing import List, Dict, Any, Optional
-from ..models.restaurant import Restaurant
+from src.models.restaurant import Restaurant
 
 
 class GoogleMapsService:
@@ -121,7 +121,7 @@ class GoogleMapsService:
             price_range = self._price_level_to_range(price_level)
             
             # calcular distancia
-            from ..utils.geo_utils import calculate_distance, format_distance
+            from src.utils.geo_utils import calculate_distance, format_distance
             distance = calculate_distance(user_lat, user_lon, lat, lng)
             distance_formatted = format_distance(distance)
             
@@ -209,10 +209,10 @@ class GoogleMapsService:
         Returns:
             lista de restaurantes mockados
         """
-        from ..models.restaurant import MOCK_RESTAURANTS
+        from src.models.restaurant import MOCK_RESTAURANTS
         
         # atualizar distancias dos mockados baseado na localizacao do usuario
-        from ..utils.geo_utils import calculate_distance, format_distance
+        from src.utils.geo_utils import calculate_distance, format_distance
         
         mock_restaurants = []
         for restaurant in MOCK_RESTAURANTS:
