@@ -280,13 +280,7 @@ const SearchResults = () => {
         />
       </div>
 
-      {/* Error message */}
-      {error && (
-        <div className="absolute left-5 top-80 lg:left-[100px] lg:bottom-32 bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
-          <p className="font-medium">Erro na busca</p>
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
+      
     </div>
   )
 }

@@ -400,13 +400,7 @@ const CompleteList = () => {
         </div>
       )}
 
-      {/* Error state */}
-      {error && (
-        <div className="absolute left-5 top-5 bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400">
-          <p className="font-medium">Erro ao carregar restaurantes</p>
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
+      
 
       {/* Empty state */}
       {!loading && displayRestaurants.length === 0 && (
