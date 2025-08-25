@@ -191,23 +191,36 @@ class QueryParser:
         """
         text_lower = text.lower()
         
-        # Padrões para ordenação por distância
-        distance_patterns = ['perto', 'proximo', 'perto de mim', 'proximo de mim', 'na minha area', 'na minha região', 'mais perto']
+        # ✅ AMPLIANDO OS PADRÕES PARA DISTÂNCIA
+        distance_patterns = [
+            'perto', 'proximo', 'próximo', 'perto de mim', 'proximo de mim', 'próximo de mim',
+            'na minha area', 'na minha área', 'na minha regiao', 'na minha região', 
+            'mais perto', 'mais próximo', 'aqui perto', 'vizinho', 'nas redondezas',
+            'ao lado', 'região proxima', 'região próxima', 'na esquina', 'do lado',
+            'distancia', 'distância', 'localização', 'localizacao'
+        ]
         
         # Padrões para ordenação por nota
-        rating_patterns = ['melhor', 'melhores', 'bom', 'bons', 'ótimo', 'ótimos', 'excelente', 'top', 'recomendado']
+        rating_patterns = [
+            'melhor', 'melhores', 'bom', 'bons', 'ótimo', 'ótimos', 'otimo', 'otimos',
+            'excelente', 'excelentes', 'top', 'recomendado', 'recomendados',
+            'bem avaliado', 'bem avaliados', 'nota alta', 'notas altas'
+        ]
         
         # Padrões para ordenação por preço (barato)
-        price_low_patterns = ['barato', 'baratos', 'econômico', 'econômicos', 'acessível', 'acessíveis', 'preço baixo', 'preços baixos']
+        price_low_patterns = [
+            'barato', 'baratos', 'economico', 'econômico', 'economicos', 'econômicos',
+            'acessivel', 'acessível', 'acessiveis', 'acessíveis', 'preço baixo', 'preco baixo',
+            'preços baixos', 'precos baixos', 'em conta', 'popular', 'pechincha'
+        ]
         
         # Padrões para ordenação por preço (caro)
-        price_high_patterns = ['caro', 'caros', 'luxuoso', 'luxuosos', 'premium', 'sofisticado', 'gourmet']
+        price_high_patterns = [
+            'caro', 'caros', 'luxuoso', 'luxuosos', 'premium', 'sofisticado', 'sofisticados',
+            'gourmet', 'fino', 'finos', 'exclusivo', 'exclusivos', 'alto custo'
+        ]
         
-        # Verificar padrões
-        for pattern in distance_patterns:
-            if pattern in text_lower:
-                return 'distance'
-        
+        # ✅ VERIFICAR PADRÕES (nota tem prioridade sobre distância se ambos aparecerem)
         for pattern in rating_patterns:
             if pattern in text_lower:
                 return 'rating'
@@ -220,7 +233,12 @@ class QueryParser:
             if pattern in text_lower:
                 return 'price_high'
         
-        return 'default'
+        for pattern in distance_patterns:
+            if pattern in text_lower:
+                return 'distance'
+        
+        # ✅ PADRÃO SEMPRE SERÁ DISTÂNCIA (não 'default')
+        return 'distance'
     
     def generate_dynamic_title(self, text: str) -> str:
         """

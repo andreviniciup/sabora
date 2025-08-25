@@ -452,11 +452,8 @@ class RecommendationEngine:
         sort_preference = filters.get('sort_preference', 'default') if filters else 'default'
         print(f"📊 KEYWORD: Preferência de ordenação: {sort_preference}")
         
-        # Ordenar baseado na preferência
-        if sort_preference == 'distance':
-            print("📏 KEYWORD: Ordenando por distância...")
-            sorted_restaurants = restaurants_in_radius  # Já está ordenado por distância
-        elif sort_preference == 'rating':
+        # ✅ CORREÇÃO: Ordenar baseado na preferência
+        if sort_preference == 'rating':
             print("⭐ KEYWORD: Ordenando por nota...")
             sorted_restaurants = self.bubble_sort_by_rating(restaurants_in_radius)
         elif sort_preference == 'price_low':
@@ -466,9 +463,9 @@ class RecommendationEngine:
             print("💰 KEYWORD: Ordenando por preço (mais caro primeiro)...")
             sorted_restaurants = self.bubble_sort_by_price_high(restaurants_in_radius)
         else:
-            print("📊 KEYWORD: Ordenação padrão (distância + nota)...")
-            # Ordenação padrão: primeiro por distância, depois por nota
-            sorted_restaurants = self.bubble_sort_by_rating(restaurants_in_radius)
+            # ✅ CORREÇÃO: PADRÃO É SEMPRE POR DISTÂNCIA (inclusive 'distance' e 'default')
+            print("📏 KEYWORD: Ordenação padrão por distância (mais próximo primeiro)...")
+            sorted_restaurants = restaurants_in_radius  # Já está ordenado por distância
         
         print(f"   📊 Restaurantes ordenados: {len(sorted_restaurants)}")
         
@@ -764,4 +761,39 @@ if __name__ == "__main__":
     print(f"primeiro restaurante como dict: {dicts[0] if dicts else 'nenhum'}")
     
     print("\n✅ todos os testes passaram!")
+    
+    # TESTE PARA VERIFICAR A CORREÇÃO
+    print("\n🧪 TESTANDO CORREÇÕES:")
+    try:
+        from nlp.parser import QueryParser
+        from nlp.synonyms import CULINARIA, PRECO, DISTANCIA, AVALIACAO
+        
+        parser = QueryParser()
+        parser.set_cuisine_synonyms(CULINARIA)
+        parser.set_price_synonyms(PRECO)
+        parser.set_distance_synonyms(DISTANCIA)
+        parser.set_rating_synonyms(AVALIACAO)
+        
+        # Testes de ordenação
+        test_queries = [
+            "restaurante japonês",  # deve ser 'distance'
+            "quero algo perto de mim",  # deve ser 'distance'
+            "restaurante próximo",  # deve ser 'distance'
+            "melhor restaurante japonês",  # deve ser 'rating'
+            "restaurante japonês barato",  # deve ser 'price_low'
+            "restaurante caro",  # deve ser 'price_high'
+            "comida italiana",  # deve ser 'distance'
+        ]
+        
+        for query in test_queries:
+            filters = parser.parse_query(query)
+            sort_pref = filters.get('sort_preference', 'ERRO!')
+            print(f"   '{query}' → {sort_pref}")
+            
+        print("✅ Testes de correção concluídos!")
+        
+    except ImportError as e:
+        print(f"⚠️ Não foi possível importar módulos para teste: {e}")
+    except Exception as e:
+        print(f"❌ Erro no teste de correção: {e}")
 
