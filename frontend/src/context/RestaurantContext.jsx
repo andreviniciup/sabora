@@ -201,6 +201,13 @@ export const RestaurantProvider = ({ children }) => {
           responseText: responseText
         })
         
+        console.log('🔍 RestaurantContext - Definindo restaurantes:', {
+          recommendations: recommendations,
+          recommendationsLength: recommendations.length,
+          title: title,
+          responseText: responseText
+        })
+        
         setRestaurants(recommendations)
         setDynamicTitle(title)
         setDynamicResponseText(responseText)

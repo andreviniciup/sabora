@@ -13,6 +13,18 @@ const SearchResults = () => {
   const displayRestaurants = restaurants || []
   const displayLoading = loading
 
+  // Debug logs
+  console.log('🔍 SearchResults - Estado atual:', {
+    restaurants: restaurants,
+    restaurantsLength: restaurants?.length,
+    displayRestaurants: displayRestaurants,
+    displayRestaurantsLength: displayRestaurants.length,
+    loading: loading,
+    error: error,
+    currentQuery: currentQuery,
+    dynamicTitle: dynamicTitle
+  })
+
   return (
     <div className="min-h-screen bg-neutral-900 font-alexandria overflow-hidden">
       {/* Notificação de erro */}
