@@ -22,6 +22,7 @@ from src.models.restaurant import Restaurant, restaurants_to_dicts
 from src.services.cache_service import cache_service
 from src.utils.validators import business_validator
 from src.utils.logger import backend_logger
+from src.utils.search_validator import search_validator
 
 # configuracao do app
 app = Flask(__name__)
@@ -124,10 +125,15 @@ def get_recommendations():
                 'message': 'envie text, latitude e longitude no corpo da requisicao'
             }), 400
         
-        # validar entrada usando regras de negócio
+        # extrair dados da requisição
+        text = data.get('text', '').strip()
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        
+        # validar entrada usando regras de negócio básicas
         validation_errors = business_validator.validate_search_query(data)
         if validation_errors:
-            backend_logger.warn('Validation errors found', validation_errors)
+            backend_logger.warn('Basic validation errors found', validation_errors)
             return jsonify({
                 'error': 'dados invalidos',
                 'message': 'erros de validacao encontrados',
@@ -141,10 +147,22 @@ def get_recommendations():
                 ]
             }), 400
         
-        # extrair dados validados
-        text = business_validator.sanitize_query_text(data.get('text', ''))
-        latitude = float(data.get('latitude'))
-        longitude = float(data.get('longitude'))
+        # validar se a busca faz sentido usando validação inteligente
+        search_validation = search_validator.validate_search_query(text)
+        if not search_validation.is_valid:
+            backend_logger.warn('Intelligent search validation failed', {
+                'query': text,
+                'errors': search_validation.errors
+            })
+            return jsonify({
+                'error': 'busca invalida',
+                'message': 'sua busca não parece ser sobre restaurantes'
+            }), 400
+        
+        # usar query sanitizada pelo validador inteligente
+        text = search_validation.sanitized_query
+        latitude = float(latitude)
+        longitude = float(longitude)
         
         backend_logger.nlp_processing(text, {
             'latitude': latitude,
@@ -175,6 +193,9 @@ def get_recommendations():
         # Gerar título dinâmico
         dynamic_title = query_parser.generate_dynamic_title(text)
         
+        # Gerar texto de resposta dinâmico
+        dynamic_response_text = query_parser.generate_dynamic_response_text(text)
+        
         duration = int((time.time() - start_time) * 1000)
         
         response_data = {
@@ -188,7 +209,9 @@ def get_recommendations():
                 },
                 'filters_extracted': filters,
                 'original_query': text,
-                'dynamic_title': dynamic_title
+                'dynamic_title': dynamic_title,
+                'dynamic_response_text': dynamic_response_text,
+
             }
         }
         
@@ -213,6 +236,9 @@ def get_recommendations():
             'error': 'erro interno do servidor',
             'message': str(e)
         }), 500
+
+
+
 
 
 @app.route('/api/business-rules', methods=['GET'])
