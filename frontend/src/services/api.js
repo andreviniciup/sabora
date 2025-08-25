@@ -85,12 +85,9 @@ export const restaurantAPI = {
   // Verificar saúde da API
   healthCheck: async () => {
     try {
-      console.log('🏥 Health check iniciado...')
       const response = await api.get('/api/health')
-      console.log('✅ Health check bem-sucedido:', response.data)
       return response.data
     } catch (error) {
-      console.error('❌ Health check falhou:', error.message)
       throw new Error(`Health check failed: ${error.message}`)
     }
   },
@@ -98,16 +95,8 @@ export const restaurantAPI = {
   // Testar conectividade com o backend
   testConnection: async () => {
     try {
-      console.log('🔗 Testando conectividade com o backend...')
-      console.log('📍 URL da API:', API_BASE_URL)
-      
       const healthResponse = await restaurantAPI.healthCheck()
       const configResponse = await api.get('/api/config')
-      
-      console.log('✅ Conectividade OK:', {
-        health: healthResponse,
-        config: configResponse.data
-      })
       
       return {
         success: true,
@@ -116,7 +105,6 @@ export const restaurantAPI = {
         apiUrl: API_BASE_URL
       }
     } catch (error) {
-      console.error('❌ Falha na conectividade:', error)
       return {
         success: false,
         error: error.message,
@@ -128,37 +116,22 @@ export const restaurantAPI = {
   // Buscar restaurantes com recomendação baseada em texto e localização
   getRecommendations: async (text, latitude, longitude) => {
     try {
-      console.log("🌐 API: Fazendo requisição para /api/recommendations")
-      console.log(`   📝 Texto: '${text}'`)
-      console.log(`   📍 Latitude: ${latitude}`)
-      console.log(`   📍 Longitude: ${longitude}`)
-      
       const requestData = {
         text,
         latitude,
         longitude
       }
       
-      console.log("📤 Dados enviados:", requestData)
-      
       const response = await api.post('/api/recommendations', requestData)
       
-      console.log("📥 Resposta recebida:", response.data)
       return response.data
     } catch (error) {
-      console.error("❌ API: Erro na requisição:", error)
       if (error.response?.status === 400) {
-        console.error("   📄 Detalhes do erro:", error.response.data)
-        
-
-        
         throw new Error(error.response.data.message || 'Parâmetros de busca inválidos')
       }
       throw new Error(`Falha na busca: ${error.message}`)
     }
   },
-
-
 
   // Buscar restaurantes simples (mantido para compatibilidade)
   getRestaurants: async (query = '', limit = 5) => {

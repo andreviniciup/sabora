@@ -24,12 +24,8 @@ const Home = () => {
     const getLocation = async () => {
       try {
         const location = await requestLocation()
-        console.log('Localização obtida:', location)
-        console.log('Latitude:', location?.latitude)
-        console.log('Longitude:', location?.longitude)
-        console.log('Precisão:', location?.accuracy, 'metros')
       } catch (error) {
-        console.log('Erro ao obter localização:', error.message)
+        // Silenciar erro de localização
       }
     }
     getLocation()
@@ -39,28 +35,16 @@ const Home = () => {
 
   // Monitorar quando a busca é bem-sucedida
   useEffect(() => {
-    console.log('🔍 useEffect executado:', {
-      searchAttempted,
-      loading,
-      error,
-      restaurantsLength: restaurants.length
-    })
-    
     if (searchAttempted && !loading && !error) {
-      console.log('✅ Busca concluída com sucesso, navegando para resultados')
       navigate('/search-results')
       setSearchAttempted(false)
     } else if (searchAttempted && !loading && error) {
-      console.log('❌ Busca falhou com erro, não navegando')
       setSearchAttempted(false)
     }
   }, [loading, error, searchAttempted, navigate, restaurants.length])
 
   const handleSearch = async () => {
     if (!query.trim()) return
-
-    console.log('Iniciando busca com query:', query)
-    console.log('Localização disponível:', location)
 
     try {
       clearError()

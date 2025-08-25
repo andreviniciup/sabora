@@ -25,7 +25,6 @@ const useGeolocation = () => {
           setPermission(result.state)
         })
       } catch (error) {
-        console.warn('Erro ao verificar permissão:', error)
         setPermission('prompt')
       }
     }
@@ -43,7 +42,7 @@ const useGeolocation = () => {
         return locationData
       }
     } catch (error) {
-      console.warn('Erro ao carregar localização do cache:', error)
+      // Silenciar erro de cache
     }
     return null
   }, [])
@@ -54,7 +53,7 @@ const useGeolocation = () => {
       localStorage.removeItem('userLocation')
       setLocation(null)
     } catch (error) {
-      console.warn('Erro ao limpar cache:', error)
+      // Silenciar erro de cache
     }
   }, [])
 
@@ -63,7 +62,7 @@ const useGeolocation = () => {
     try {
       localStorage.setItem('userLocation', JSON.stringify(locationData))
     } catch (error) {
-      console.warn('Erro ao salvar localização no cache:', error)
+      // Silenciar erro de cache
     }
   }, [])
 

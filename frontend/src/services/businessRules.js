@@ -173,7 +173,6 @@ export class BusinessRulesService {
       const data = await response.json()
       return data.data
     } catch (error) {
-      console.error('erro ao obter regras de negócio:', error)
       // retornar regras padrão em caso de erro
       return BUSINESS_RULES
     }
@@ -201,7 +200,6 @@ export class BusinessRulesService {
       
       return true
     } catch (error) {
-      console.error('erro ao sincronizar regras:', error)
       return false
     }
   }

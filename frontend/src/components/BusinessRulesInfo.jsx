@@ -14,7 +14,6 @@ const BusinessRulesInfo = () => {
         setRules(backendRules)
       } catch (err) {
         setError('erro ao carregar regras do backend')
-        console.error('erro ao carregar regras:', err)
       } finally {
         setLoading(false)
       }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import useGeolocation from '../hooks/useGeolocation'
 import locationService from '../services/locationService'
 import { restaurantAPI } from '../services/api'
@@ -42,8 +42,8 @@ export const RestaurantProvider = ({ children }) => {
     setLocation
   } = useGeolocation()
 
-  // Inicializar localização manualmente (não automático)
-  const initializeLocation = async () => {
+  // Inicializar localização manualmente (não automático) - useCallback para evitar dependência circular
+  const initializeLocation = useCallback(async () => {
     try {
       // Primeiro, tentar carregar do cache
       const cachedLocation = loadCachedLocation()
@@ -64,7 +64,7 @@ export const RestaurantProvider = ({ children }) => {
     } catch (error) {
       // Silenciar erro de inicialização
     }
-  }
+  }, [isSupported, requestLocation, loadCachedLocation, setLocation])
 
   // sincronizar regras de negócio com o backend
   useEffect(() => {
@@ -80,7 +80,7 @@ export const RestaurantProvider = ({ children }) => {
     syncRules()
   }, [])
 
-  // Inicializar localização automaticamente
+  // Inicializar localização automaticamente - FIX: remover dependência circular
   useEffect(() => {
     const initLocation = async () => {
       if (isSupported && !location && !locationLoading) {
@@ -89,7 +89,7 @@ export const RestaurantProvider = ({ children }) => {
     }
     
     initLocation()
-  }, [isSupported, location, locationLoading, initializeLocation])
+  }, [isSupported, location, locationLoading]) // Remover initializeLocation da dependência
 
   // Enviar localização para o backend
   const sendLocationToBackend = async (locationData) => {
@@ -186,10 +186,11 @@ export const RestaurantProvider = ({ children }) => {
         location.longitude
       )
 
-      if (response.data && response.data.data && response.data.data.recommendations) {
-        const recommendations = response.data.data.recommendations
-        const title = response.data.data.dynamic_title || 'Restaurantes Encontrados'
-        const responseText = response.data.data.dynamic_response_text || {
+      // FIX: Estrutura correta da resposta - response.data (não response.data.data)
+      if (response.data && response.data.recommendations) {
+        const recommendations = response.data.recommendations
+        const title = response.data.dynamic_title || 'Restaurantes Encontrados'
+        const responseText = response.data.dynamic_response_text || {
           title: 'Sua lista está pronta!',
           subtitle: 'Estes são os restaurantes mais interessantes e saborosos perto de você.',
           description: 'Prepare-se para se surpreender a cada prato.'
@@ -201,18 +202,15 @@ export const RestaurantProvider = ({ children }) => {
           responseText: responseText
         })
         
-        console.log('🔍 RestaurantContext - Definindo restaurantes:', {
-          recommendations: recommendations,
-          recommendationsLength: recommendations.length,
-          title: title,
-          responseText: responseText
-        })
-        
-        setRestaurants(recommendations)
+        // Definir os dados no estado
+        setRestaurants(recommendations || [])
         setDynamicTitle(title)
         setDynamicResponseText(responseText)
+        
       } else {
         logger.warn('No recommendations found', response.data)
+        
+        // Se não há dados válidos, definir array vazio
         setRestaurants([])
         setDynamicTitle('Restaurantes Encontrados')
         setDynamicResponseText({
@@ -236,7 +234,11 @@ export const RestaurantProvider = ({ children }) => {
         setError(error.message || 'Erro ao buscar restaurantes')
       }
       
-      setRestaurants([])
+      // Só limpar restaurantes se for um erro real, não de validação ou rede
+      if (!error.response || error.response.status >= 500) {
+        setRestaurants([])
+      }
+      
     } finally {
       setLoading(false)
       logger.appState('RestaurantContext', 'search_completed', { 

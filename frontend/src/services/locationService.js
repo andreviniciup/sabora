@@ -12,7 +12,6 @@ const locationService = {
       })
       return response.data
     } catch (error) {
-      console.error('Erro ao enviar localização:', error)
       throw new Error('Falha ao enviar localização para o servidor')
     }
   },
@@ -33,7 +32,6 @@ const locationService = {
       
       return response.data
     } catch (error) {
-      console.error('Erro ao obter recomendações:', error)
       throw new Error('Falha ao obter recomendações')
     }
   },
@@ -81,7 +79,6 @@ const locationService = {
       })
       return response.data
     } catch (error) {
-      console.error('Erro ao obter endereço:', error)
       return null
     }
   },
@@ -94,7 +91,6 @@ const locationService = {
       })
       return response.data
     } catch (error) {
-      console.error('Erro ao obter coordenadas:', error)
       return null
     }
   }
