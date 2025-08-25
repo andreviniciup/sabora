@@ -2,11 +2,12 @@ import { Link } from 'react-router-dom'
 import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
+import ErrorNotification from '../components/ErrorNotification'
 
 // dados mockados removidos - agora usando apenas dados da api
 
 const SearchResults = () => {
-  const { restaurants, loading, error, currentQuery, dynamicTitle, searchRestaurants } = useRestaurants()
+  const { restaurants, loading, error, currentQuery, dynamicTitle, dynamicResponseText, searchRestaurants, clearError } = useRestaurants()
   
   // usar apenas dados da api
   const displayRestaurants = restaurants || []
@@ -14,6 +15,11 @@ const SearchResults = () => {
 
   return (
     <div className="min-h-screen bg-neutral-900 font-alexandria overflow-hidden">
+      {/* Notificação de erro */}
+      <ErrorNotification 
+        error={error} 
+        onClose={clearError}
+      />
       {/* Layout Mobile */}
       <div className="lg:hidden px-[19px] py-[35px] inline-flex justify-start items-center gap-2.5 overflow-hidden">
         <div className="w-[353px] inline-flex flex-col justify-start items-start gap-8">
@@ -25,16 +31,16 @@ const SearchResults = () => {
           {/* Texto de resposta */}
           <div className="w-[343px] h-[156px] text-justify justify-start">
             <span className="text-zinc-300 text-2xl font-medium font-['Alexandria'] leading-[23px]">
-              Sua lista está pronta! <br/><br/>
+              {dynamicResponseText.title} <br/><br/>
             </span>
             <span className="text-zinc-300 text-base font-medium font-['Alexandria'] leading-[23px]">
-              Estes são os restaurantes mais interessantes e saborosos perto de você. <br/>
+              {dynamicResponseText.subtitle} <br/>
             </span>
             <span className="text-zinc-300 text-2xl font-medium font-['Alexandria'] leading-[23px]">
               <br/>
             </span>
             <span className="text-zinc-300 text-sm font-medium font-['Alexandria'] leading-[23px]">
-              Prepare-se para se surpreender a cada prato.
+              {dynamicResponseText.description}
             </span>
           </div>
           
@@ -155,13 +161,13 @@ const SearchResults = () => {
             <div className="p-2.5 flex justify-center items-center gap-2.5">
               <div className="w-[320px] text-justify justify-start">
                 <span className="text-zinc-300 text-[24px] font-medium font-['Alexandria'] leading-[20px]">
-                  Sua lista está pronta! <br/>
+                  {dynamicResponseText.title} <br/>
                 </span>
                 <span className="text-zinc-300 text-lg font-medium font-['Alexandria'] leading-[18px]">
-                  <br/>Estes são os restaurantes mais interessantes e saborosos perto de você. <br/><br/>
+                  <br/>{dynamicResponseText.subtitle} <br/><br/>
                 </span>
                 <span className="text-zinc-300 text-base font-medium font-['Alexandria'] leading-[16px]">
-                  Prepare-se para se surpreender a cada prato.
+                  {dynamicResponseText.description}
                 </span>
               </div>
             </div>
@@ -276,7 +282,7 @@ const SearchResults = () => {
           placeholder="Pesquisar"
           loading={loading}
           className="w-[240px] lg:w-[200px] transition-all duration-300 ease-in-out"
-          style={{ backgroundColor: '#181818' }}
+          style={{ backgroundColor: '#3D3D3D' }}
         />
       </div>
 

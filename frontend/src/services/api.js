@@ -149,11 +149,16 @@ export const restaurantAPI = {
       console.error("❌ API: Erro na requisição:", error)
       if (error.response?.status === 400) {
         console.error("   📄 Detalhes do erro:", error.response.data)
+        
+
+        
         throw new Error(error.response.data.message || 'Parâmetros de busca inválidos')
       }
       throw new Error(`Falha na busca: ${error.message}`)
     }
   },
+
+
 
   // Buscar restaurantes simples (mantido para compatibilidade)
   getRestaurants: async (query = '', limit = 5) => {

@@ -130,7 +130,8 @@ const useGeolocation = () => {
     isSupported,
     requestLocation,
     loadCachedLocation,
-    clearLocationCache
+    clearLocationCache,
+    setLocation
   }
 }
 

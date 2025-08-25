@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
+import ErrorNotification from '../components/ErrorNotification'
 import ApiTest from '../components/ApiTest'
 
 const Home = () => {
@@ -33,6 +34,15 @@ const Home = () => {
     getLocation()
   }, [requestLocation])
 
+  // Monitorar mudanças no estado de erro e loading para navegação
+  useEffect(() => {
+    // Se não está carregando e não há erro, navegar para resultados
+    if (!loading && !error && query.trim()) {
+      console.log('Busca concluída com sucesso, navegando para resultados')
+      navigate('/search-results')
+    }
+  }, [loading, error, query, navigate])
+
   const handleSearch = async () => {
     if (!query.trim()) return
 
@@ -44,11 +54,6 @@ const Home = () => {
       
       // Usar a função de busca real do contexto
       await searchRestaurants(query)
-      
-      console.log('Busca concluída, navegando para resultados')
-      
-      // Navegar para resultados (a função searchRestaurants já trata os erros)
-      navigate('/search-results')
       
     } catch (error) {
       console.error('Search error:', error)
@@ -64,6 +69,12 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-figma-bg font-alexandria overflow-hidden">
+      {/* Notificação de erro */}
+      <ErrorNotification 
+        error={error} 
+        onClose={clearError}
+      />
+      
       {/* Desktop Layout */}
       <div className="hidden lg:block">
         <div className="Version2 relative w-full h-full max-w-screen-xl max-h-screen mx-auto" style={{width: '1512px', height: '982px'}}>
@@ -99,13 +110,7 @@ const Home = () => {
               className="w-full"
             />
             
-            {/* Mensagem de erro */}
-            {error && (
-              <div className="w-full bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
-                <p className="font-medium">Erro na busca</p>
-                <p>{error}</p>
-              </div>
-            )}
+
             
             {/* Aviso de localização */}
             {!location && (
@@ -171,13 +176,7 @@ const Home = () => {
                 className="w-60"
               />
               
-              {/* Mensagem de erro mobile */}
-              {error && (
-                <div className="w-60 bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-xs text-center">
-                  <p className="font-medium">Erro na busca</p>
-                  <p>{error}</p>
-                </div>
-              )}
+
               
               {/* Aviso de localização mobile */}
               {!location && (

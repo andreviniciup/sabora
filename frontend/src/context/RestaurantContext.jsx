@@ -21,6 +21,11 @@ export const RestaurantProvider = ({ children }) => {
   const [error, setError] = useState(null)
   const [currentQuery, setCurrentQuery] = useState('')
   const [dynamicTitle, setDynamicTitle] = useState('')
+  const [dynamicResponseText, setDynamicResponseText] = useState({
+    title: 'Sua lista está pronta!',
+    subtitle: 'Estes são os restaurantes mais interessantes e saborosos perto de você.',
+    description: 'Prepare-se para se surpreender a cada prato.'
+  })
   const [locationSent, setLocationSent] = useState(false)
   const [businessRulesLoaded, setBusinessRulesLoaded] = useState(false)
 
@@ -33,8 +38,33 @@ export const RestaurantProvider = ({ children }) => {
     isSupported,
     requestLocation,
     loadCachedLocation,
-    clearLocationCache
+    clearLocationCache,
+    setLocation
   } = useGeolocation()
+
+  // Inicializar localização manualmente (não automático)
+  const initializeLocation = async () => {
+    try {
+      // Primeiro, tentar carregar do cache
+      const cachedLocation = loadCachedLocation()
+      
+      if (cachedLocation) {
+        setLocation(cachedLocation)
+        return
+      }
+
+      // Se não há cache, solicitar nova localização
+      if (isSupported) {
+        const newLocation = await requestLocation()
+        
+        if (newLocation) {
+          setLocation(newLocation)
+        }
+      }
+    } catch (error) {
+      // Silenciar erro de inicialização
+    }
+  }
 
   // sincronizar regras de negócio com o backend
   useEffect(() => {
@@ -49,6 +79,17 @@ export const RestaurantProvider = ({ children }) => {
     
     syncRules()
   }, [])
+
+  // Inicializar localização automaticamente
+  useEffect(() => {
+    const initLocation = async () => {
+      if (isSupported && !location && !locationLoading) {
+        await initializeLocation()
+      }
+    }
+    
+    initLocation()
+  }, [isSupported, location, locationLoading, initializeLocation])
 
   // Enviar localização para o backend
   const sendLocationToBackend = async (locationData) => {
@@ -117,7 +158,15 @@ export const RestaurantProvider = ({ children }) => {
       // Verificar se temos localização
       if (!location) {
         logger.error('Location not available for search', null, { query })
-        throw new Error('Localização não disponível. Por favor, permita o acesso à localização.')
+        
+        // Tentar obter localização automaticamente
+        const newLocation = await requestLocation()
+        
+        if (newLocation) {
+          setLocation(newLocation)
+        } else {
+          throw new Error('Para buscar restaurantes, precisamos da sua localização. Por favor, permita o acesso à localização no seu navegador.')
+        }
       }
 
       // sanitizar texto da consulta
@@ -137,21 +186,33 @@ export const RestaurantProvider = ({ children }) => {
         location.longitude
       )
 
-      if (response.data && response.data.recommendations) {
-        const recommendations = response.data.recommendations
-        const title = response.data.dynamic_title || 'Restaurantes Encontrados'
+      if (response.data && response.data.data && response.data.data.recommendations) {
+        const recommendations = response.data.data.recommendations
+        const title = response.data.data.dynamic_title || 'Restaurantes Encontrados'
+        const responseText = response.data.data.dynamic_response_text || {
+          title: 'Sua lista está pronta!',
+          subtitle: 'Estes são os restaurantes mais interessantes e saborosos perto de você.',
+          description: 'Prepare-se para se surpreender a cada prato.'
+        }
         
         logger.info('Search successful', {
           resultsCount: recommendations.length,
-          title: title
+          title: title,
+          responseText: responseText
         })
         
         setRestaurants(recommendations)
         setDynamicTitle(title)
+        setDynamicResponseText(responseText)
       } else {
         logger.warn('No recommendations found', response.data)
         setRestaurants([])
         setDynamicTitle('Restaurantes Encontrados')
+        setDynamicResponseText({
+          title: 'Sua lista está pronta!',
+          subtitle: 'Estes são os restaurantes mais interessantes e saborosos perto de você.',
+          description: 'Prepare-se para se surpreender a cada prato.'
+        })
       }
 
     } catch (error) {
@@ -161,7 +222,13 @@ export const RestaurantProvider = ({ children }) => {
         errorMessage: error.message
       })
       
-      setError(error.message || 'Erro ao buscar restaurantes')
+      // Verificar se é um erro de validação (400)
+      if (error.response && error.response.status === 400) {
+        setError(error.response.data?.message || 'Sua busca não parece ser sobre restaurantes')
+      } else {
+        setError(error.message || 'Erro ao buscar restaurantes')
+      }
+      
       setRestaurants([])
     } finally {
       setLoading(false)
@@ -199,30 +266,6 @@ export const RestaurantProvider = ({ children }) => {
     return locationService.getLocationInfo(location)
   }
 
-  // Inicializar localização manualmente (não automático)
-  const initializeLocation = async () => {
-    try {
-      // Primeiro, tentar carregar do cache
-      const cachedLocation = loadCachedLocation()
-      
-      if (cachedLocation) {
-        await sendLocationToBackend(cachedLocation)
-        return
-      }
-
-      // Se não há cache, solicitar nova localização
-      if (isSupported) {
-        const newLocation = await requestLocation()
-        
-        if (newLocation) {
-          await sendLocationToBackend(newLocation)
-        }
-      }
-    } catch (error) {
-      // Silenciar erro de inicialização
-    }
-  }
-
   const value = {
     // Estado dos restaurantes
     restaurants,
@@ -230,6 +273,7 @@ export const RestaurantProvider = ({ children }) => {
     error,
     currentQuery,
     dynamicTitle,
+    dynamicResponseText,
     
     // Estado da localização
     location,

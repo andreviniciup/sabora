@@ -8,7 +8,7 @@ CULINARIA = {
         "gnocchi", "nhoque", "espaguete", "fettuccine", "carbonara", "bolonhesa"
     ],
     "japonesa": [
-        "japonesa", "japa", "sushi", "suchi", "temaki", "sashimi", "uramaki", "yakimeshi",
+        "japonesa", "japonês", "japones", "japa", "sushi", "suchi", "temaki", "sashimi", "uramaki", "yakimeshi",
         "robata", "gyoza", "missoshiro", "ramen", "lamen"
     ],
     "brasileira": [

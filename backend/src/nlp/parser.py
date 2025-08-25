@@ -292,6 +292,199 @@ class QueryParser:
         else:
             return "Restaurantes Encontrados"
     
+    def generate_dynamic_response_text(self, text: str) -> Dict[str, str]:
+        """
+        gera texto de resposta dinâmico baseado na consulta do usuário
+        
+        Args:
+            text: consulta do usuário
+            
+        Returns:
+            dicionário com partes do texto de resposta
+        """
+        if not text or not text.strip():
+            return {
+                "title": "Sua lista está pronta!",
+                "subtitle": "Estes são os restaurantes mais interessantes e saborosos perto de você.",
+                "description": "Prepare-se para se surpreender a cada prato."
+            }
+        
+        text_lower = text.lower()
+        
+        # Mapeamento de tipos de culinária para textos de resposta
+        cuisine_responses = {
+            "japonesa": {
+                "title": "Sua lista de japoneses está pronta!",
+                "subtitle": "Estes são os melhores restaurantes japoneses perto de você.",
+                "description": "Prepare-se para saborear sushi, sashimi e muito mais."
+            },
+            "brasileira": {
+                "title": "Sua lista de brasileiros está pronta!",
+                "subtitle": "Estes são os melhores restaurantes brasileiros perto de você.",
+                "description": "Prepare-se para saborear a autêntica culinária brasileira."
+            },
+            "italiana": {
+                "title": "Sua lista de italianos está pronta!",
+                "subtitle": "Estes são os melhores restaurantes italianos perto de você.",
+                "description": "Prepare-se para saborear massas, pizzas e muito mais."
+            },
+            "chinesa": {
+                "title": "Sua lista de chineses está pronta!",
+                "subtitle": "Estes são os melhores restaurantes chineses perto de você.",
+                "description": "Prepare-se para saborear pratos tradicionais chineses."
+            },
+            "mexicana": {
+                "title": "Sua lista de mexicanos está pronta!",
+                "subtitle": "Estes são os melhores restaurantes mexicanos perto de você.",
+                "description": "Prepare-se para saborear tacos, burritos e muito mais."
+            },
+            "indiana": {
+                "title": "Sua lista de indianos está pronta!",
+                "subtitle": "Estes são os melhores restaurantes indianos perto de você.",
+                "description": "Prepare-se para saborear curry e pratos tradicionais indianos."
+            },
+            "arabe": {
+                "title": "Sua lista de árabes está pronta!",
+                "subtitle": "Estes são os melhores restaurantes árabes perto de você.",
+                "description": "Prepare-se para saborear esfihas, quibes e muito mais."
+            },
+            "portuguesa": {
+                "title": "Sua lista de portugueses está pronta!",
+                "subtitle": "Estes são os melhores restaurantes portugueses perto de você.",
+                "description": "Prepare-se para saborear bacalhau e pratos tradicionais portugueses."
+            },
+            "peruana": {
+                "title": "Sua lista de peruanos está pronta!",
+                "subtitle": "Estes são os melhores restaurantes peruanos perto de você.",
+                "description": "Prepare-se para saborear ceviche e pratos tradicionais peruanos."
+            },
+            "mediterranea": {
+                "title": "Sua lista mediterrânea está pronta!",
+                "subtitle": "Estes são os melhores restaurantes mediterrâneos perto de você.",
+                "description": "Prepare-se para saborear pratos frescos e saudáveis."
+            },
+            "francesa": {
+                "title": "Sua lista de franceses está pronta!",
+                "subtitle": "Estes são os melhores restaurantes franceses perto de você.",
+                "description": "Prepare-se para saborear a sofisticada culinária francesa."
+            },
+            "frutos do mar": {
+                "title": "Sua lista de frutos do mar está pronta!",
+                "subtitle": "Estes são os melhores restaurantes de frutos do mar perto de você.",
+                "description": "Prepare-se para saborear peixes e frutos do mar frescos."
+            },
+            "vegana": {
+                "title": "Sua lista vegana está pronta!",
+                "subtitle": "Estes são os melhores restaurantes veganos perto de você.",
+                "description": "Prepare-se para saborear pratos deliciosos e sustentáveis."
+            },
+            "saudavel": {
+                "title": "Sua lista saudável está pronta!",
+                "subtitle": "Estes são os melhores restaurantes saudáveis perto de você.",
+                "description": "Prepare-se para saborear pratos nutritivos e saborosos."
+            },
+            "fast food": {
+                "title": "Sua lista de fast food está pronta!",
+                "subtitle": "Estes são os melhores fast foods perto de você.",
+                "description": "Prepare-se para saborear lanches rápidos e deliciosos."
+            },
+            "padaria": {
+                "title": "Sua lista de padarias está pronta!",
+                "subtitle": "Estas são as melhores padarias perto de você.",
+                "description": "Prepare-se para saborear pães frescos e doces caseiros."
+            },
+            "café": {
+                "title": "Sua lista de cafés está pronta!",
+                "subtitle": "Estes são os melhores cafés perto de você.",
+                "description": "Prepare-se para saborear cafés especiais e acompanhamentos."
+            },
+            "bar": {
+                "title": "Sua lista de bares está pronta!",
+                "subtitle": "Estes são os melhores bares perto de você.",
+                "description": "Prepare-se para saborear drinks e petiscos deliciosos."
+            },
+            "nordestina": {
+                "title": "Sua lista nordestina está pronta!",
+                "subtitle": "Estes são os melhores restaurantes nordestinos perto de você.",
+                "description": "Prepare-se para saborear a autêntica culinária nordestina."
+            }
+        }
+        
+        # Mapeamento de preferências de ordenação para textos de resposta
+        sort_responses = {
+            "distance": {
+                "title": "Sua lista está pronta!",
+                "subtitle": "Estes são os restaurantes mais próximos e saborosos perto de você.",
+                "description": "Prepare-se para se surpreender a cada prato."
+            },
+            "rating": {
+                "title": "Sua lista está pronta!",
+                "subtitle": "Estes são os restaurantes com melhor avaliação perto de você.",
+                "description": "Prepare-se para se surpreender a cada prato."
+            },
+            "price_low": {
+                "title": "Sua lista está pronta!",
+                "subtitle": "Estes são os restaurantes mais acessíveis e saborosos perto de você.",
+                "description": "Prepare-se para se surpreender a cada prato."
+            },
+            "price_high": {
+                "title": "Sua lista está pronta!",
+                "subtitle": "Estes são os restaurantes mais sofisticados perto de você.",
+                "description": "Prepare-se para se surpreender a cada prato."
+            }
+        }
+        
+        # Encontrar tipo de culinária
+        cuisine_type = None
+        for cuisine, synonyms in self.cuisine_synonyms.items():
+            for synonym in synonyms:
+                if synonym.lower() in text_lower:
+                    cuisine_type = cuisine
+                    break
+            if cuisine_type:
+                break
+        
+        # Encontrar preferência de ordenação
+        sort_preference = self._find_sort_preference(text)
+        
+        # Gerar resposta baseada nas informações encontradas
+        if cuisine_type and cuisine_type in cuisine_responses:
+            return cuisine_responses[cuisine_type]
+        elif sort_preference in sort_responses:
+            return sort_responses[sort_preference]
+        else:
+            # Verificar se há palavras-chave específicas no texto
+            if any(word in text_lower for word in ['barato', 'baratos', 'econômico', 'acessível']):
+                return {
+                    "title": "Sua lista está pronta!",
+                    "subtitle": "Estes são os restaurantes mais acessíveis e saborosos perto de você.",
+                    "description": "Prepare-se para se surpreender a cada prato."
+                }
+            elif any(word in text_lower for word in ['caro', 'caros', 'luxuoso', 'premium']):
+                return {
+                    "title": "Sua lista está pronta!",
+                    "subtitle": "Estes são os restaurantes mais sofisticados perto de você.",
+                    "description": "Prepare-se para se surpreender a cada prato."
+                }
+            elif any(word in text_lower for word in ['perto', 'próximo', 'vizinho']):
+                return {
+                    "title": "Sua lista está pronta!",
+                    "subtitle": "Estes são os restaurantes mais próximos e saborosos perto de você.",
+                    "description": "Prepare-se para se surpreender a cada prato."
+                }
+            elif any(word in text_lower for word in ['bom', 'ótimo', 'excelente', 'melhor']):
+                return {
+                    "title": "Sua lista está pronta!",
+                    "subtitle": "Estes são os restaurantes com melhor avaliação perto de você.",
+                    "description": "Prepare-se para se surpreender a cada prato."
+                }
+            else:
+                return {
+                    "title": "Sua lista está pronta!",
+                    "subtitle": "Estes são os restaurantes mais interessantes e saborosos perto de você.",
+                    "description": "Prepare-se para se surpreender a cada prato."
+                }
+    
     def parse_query(self, text: str) -> Dict[str, Any]:
         """
         converte consulta em portugues natural para filtros estruturados
