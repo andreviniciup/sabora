@@ -165,7 +165,8 @@ export class BusinessRulesService {
    */
   static async getBusinessRules() {
     try {
-      const response = await fetch('/api/business-rules')
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sabora-backend.onrender.com'
+      const response = await fetch(`${API_BASE_URL}/api/business-rules`)
       if (!response.ok) {
         throw new Error('erro ao obter regras de negócio')
       }

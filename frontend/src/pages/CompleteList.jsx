@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useRestaurants } from '../context/RestaurantContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import SearchBar from '../components/SearchBar'
+import ErrorNotification from '../components/ErrorNotification'
 
 // dados mockados removidos - agora usando apenas dados da api
 
 const CompleteList = () => {
-  const { restaurants, loading, error, currentQuery, dynamicTitle, searchRestaurants } = useRestaurants()
+  const { restaurants, loading, error, currentQuery, dynamicTitle, searchRestaurants, clearError } = useRestaurants()
   const [searchQuery, setSearchQuery] = useState('')
   
   // usar apenas dados da api - se não houver dados, mostrar mensagem
@@ -42,6 +43,12 @@ const CompleteList = () => {
 
   return (
     <div className="relative">
+      {/* Notificação de erro */}
+      <ErrorNotification 
+        error={error} 
+        onClose={clearError}
+      />
+      
       {/* Desktop Layout */}
       <div className="hidden lg:flex w-full min-h-screen px-10 bg-neutral-900 font-alexandria items-start overflow-y-auto">
         {/* Logo */}
