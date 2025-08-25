@@ -39,12 +39,12 @@ const Home = () => {
 
   // Monitorar quando a busca é bem-sucedida
   useEffect(() => {
-    if (searchAttempted && !loading && !error && restaurants.length > 0) {
+    if (searchAttempted && !loading && !error) {
       console.log('Busca concluída com sucesso, navegando para resultados')
       navigate('/search-results')
       setSearchAttempted(false)
     }
-  }, [loading, error, restaurants, searchAttempted, navigate])
+  }, [loading, error, searchAttempted, navigate])
 
   const handleSearch = async () => {
     if (!query.trim()) return
